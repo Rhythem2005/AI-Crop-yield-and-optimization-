@@ -1,23 +1,24 @@
 // src/components/Dashboard.jsx
 import { FaPen, FaCamera } from "react-icons/fa";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 export default function Dashboard() {
-  const Navigate = useNavigate();
+  const navigate = useNavigate();
+  const { t } = useTranslation();
+
   return (
     <section className="w-full bg-gradient-to-b from-white to-green-50 py-16 px-6">
       <div className="max-w-7xl mx-auto text-center">
         {/* Title */}
         <div className="flex justify-center mb-4">
-          <div className="bg-green-100 text-green-700 p-2 rounded-lg">
-            📊
-          </div>
+          <div className="bg-green-100 text-green-700 p-2 rounded-lg">📊</div>
         </div>
         <h2 className="text-3xl md:text-4xl font-bold text-gray-800">
-          Farm Dashboard
+          {t("dashboardTitle")}
         </h2>
         <p className="mt-3 text-gray-600 text-lg">
-          Choose how you want to provide your farm data for AI-powered yield prediction and insights.
+          {t("dashboardDescription")}
         </p>
 
         {/* Cards */}
@@ -27,7 +28,7 @@ export default function Dashboard() {
             <div className="relative">
               <img
                 src="https://images.unsplash.com/photo-1508057198894-247b23fe5ade?auto=format&fit=crop&w=800&q=80"
-                alt="Manual Data Entry"
+                alt={t("manualTitle")}
                 className="h-48 w-full object-cover"
               />
               <button className="absolute top-4 right-4 bg-white shadow p-2 rounded-full text-green-600">
@@ -36,24 +37,26 @@ export default function Dashboard() {
             </div>
             <div className="p-6 text-left">
               <h3 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
-                <span className="text-green-600 text-2xl">📄</span> Manual Data Entry
+                <span className="text-green-600 text-2xl">📄</span>{" "}
+                {t("manualTitle")}
               </h3>
-              <p className="mt-3 text-gray-600">
-                Enter soil conditions, crop types, weather data, and farming practices manually. Perfect for detailed analysis and when you have specific data points to input.
-              </p>
+              <p className="mt-3 text-gray-600">{t("manualDescription")}</p>
               <ul className="mt-4 text-gray-700 space-y-2">
                 <li className="flex items-center gap-2 text-green-600">
-                  <span>•</span> Soil pH, moisture, and nutrient levels
+                  <span>•</span> {t("manualPoints.soil")}
                 </li>
                 <li className="flex items-center gap-2 text-green-600">
-                  <span>•</span> Crop varieties and planting dates
+                  <span>•</span> {t("manualPoints.crops")}
                 </li>
                 <li className="flex items-center gap-2 text-green-600">
-                  <span>•</span> Weather patterns and irrigation data
+                  <span>•</span> {t("manualPoints.weather")}
                 </li>
               </ul>
-              <button onClick={()=>Navigate('/input')} className="mt-6 w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-medium transition">
-                Add Data →
+              <button
+                onClick={() => navigate("/input")}
+                className="mt-6 w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-medium transition"
+              >
+                {t("manualButton")}
               </button>
             </div>
           </div>
@@ -63,7 +66,7 @@ export default function Dashboard() {
             <div className="relative">
               <img
                 src="https://images.unsplash.com/photo-1607746882042-944635dfe10e?auto=format&fit=crop&w=800&q=80"
-                alt="Photo Upload"
+                alt={t("uploadTitle")}
                 className="h-48 w-full object-cover"
               />
               <button className="absolute top-4 right-4 bg-white shadow p-2 rounded-full text-blue-600">
@@ -72,25 +75,26 @@ export default function Dashboard() {
             </div>
             <div className="p-6 text-left">
               <h3 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
-                <span className="text-blue-600 text-2xl">📷</span> Photo Upload for Analysis
+                <span className="text-blue-600 text-2xl">📷</span>{" "}
+                {t("uploadTitle")}
               </h3>
-              <p className="mt-3 text-gray-600">
-                Upload crop or soil images for instant AI-powered analysis. Our computer vision technology will assess plant health, growth stages, and potential issues.
-              </p>
+              <p className="mt-3 text-gray-600">{t("uploadDescription")}</p>
               <ul className="mt-4 text-gray-700 space-y-2">
                 <li className="flex items-center gap-2 text-blue-600">
-                  <span>•</span> Crop health and disease detection
+                  <span>•</span> {t("uploadPoints.health")}
                 </li>
                 <li className="flex items-center gap-2 text-blue-600">
-                  <span>•</span> Growth stage identification
+                  <span>•</span> {t("uploadPoints.growth")}
                 </li>
                 <li className="flex items-center gap-2 text-blue-600">
-                  <span>•</span> Soil condition assessment
+                  <span>•</span> {t("uploadPoints.soil")}
                 </li>
               </ul>
-              <button onClick={()=>Navigate('/upload')}
- className="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition">
-                Upload Photo →
+              <button
+                onClick={() => navigate("/upload")}
+                className="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition"
+              >
+                {t("uploadButton")}
               </button>
             </div>
           </div>

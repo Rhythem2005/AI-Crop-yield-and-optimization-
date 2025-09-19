@@ -1,19 +1,19 @@
-import React, { useEffect, useState } from 'react';
-import Navbar from '../components/Navbar';
-import Header from '../components/Header';
+import React, { useEffect, useState } from "react";
+import Header from "../components/Header";
+import { useTranslation } from "react-i18next";
 
 const Home = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { t } = useTranslation(); // hook for translations
 
   useEffect(() => {
     // Check token every time component mounts
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     setIsLoggedIn(!!token); // convert to boolean
   }, []);
 
   return (
     <div>
-      <Navbar />
       <Header />
 
       {/* Only show Get Started if NOT logged in */}
@@ -23,7 +23,7 @@ const Home = () => {
             href="/auth"
             className="bg-green-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-green-700 transition"
           >
-            Get Started
+            {t("getStarted")} {/* Translated text */}
           </a>
         </div>
       )}

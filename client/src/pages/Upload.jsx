@@ -5,7 +5,6 @@ import Navbar from '../components/Navbar';
 const Upload = () => {
   return (
     <div>
-      <Navbar />
       <UploadPhoto />
     </div>
   )

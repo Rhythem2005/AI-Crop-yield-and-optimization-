@@ -1,11 +1,34 @@
-# Python cache files
+# Node modules
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Vite cache
+.vite/
+dist/
+
+# Local env files
+.env
+.env.local
+.env.*.local
+
+# Editor directories and files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# OS system files
+.DS_Store
+Thumbs.db
+
+# Python cache files (if you have Python scripts here)
 __pycache__/
 *.pyc
 *.pyo
 
-# Virtual environment folder
+# Virtual environment folder (if Python used in client)
 venv/
-
-# System files
-.DS_Store
-Thumbs.db

@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { FaEnvelope, FaLock, FaUser } from "react-icons/fa";
-import { useNavigate } from "react-router-dom"; // ✅ import useNavigate
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next"; // ✅ i18n hook
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({ name: "", email: "", password: "", confirmPassword: "" });
   const [message, setMessage] = useState("");
-  const navigate = useNavigate(); // ✅ initialize navigate
+  const navigate = useNavigate();
+  const { t } = useTranslation(); // ✅ hook for translations
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -37,12 +39,10 @@ export default function AuthPage() {
 
       if (isLogin) {
         localStorage.setItem("token", data.access_token);
-        setMessage("Login successful! 🎉");
-
-        // ✅ Redirect to Home page after login
+        setMessage(t("auth.loginSuccess")); // ✅ translated message
         navigate("/");
       } else {
-        setMessage("Signup successful! Please login.");
+        setMessage(t("auth.signupSuccess")); // ✅ translated message
         setIsLogin(true);
       }
     } catch (err) {
@@ -61,10 +61,10 @@ export default function AuthPage() {
 
       <div className="relative z-10 w-full max-w-md bg-white/90 backdrop-blur-md shadow-lg rounded-2xl p-8">
         <h2 className="text-3xl font-bold text-gray-800 text-center">
-          {isLogin ? "Welcome Back" : "Create an Account"}
+          {isLogin ? t("auth.welcomeBack") : t("auth.createAccount")}
         </h2>
         <p className="text-gray-500 text-center mt-2">
-          {isLogin ? "Login to continue your smart farming journey 🚜🌱" : "Join the smarter farming community 🌱🚜"}
+          {isLogin ? t("auth.loginSubtitle") : t("auth.signupSubtitle")}
         </p>
 
         <form className="mt-6 flex flex-col gap-5" onSubmit={handleSubmit}>
@@ -74,7 +74,7 @@ export default function AuthPage() {
               <input
                 type="text"
                 name="name"
-                placeholder="Full Name"
+                placeholder={t("auth.namePlaceholder")}
                 value={formData.name}
                 onChange={handleChange}
                 className="w-full outline-none text-gray-700 bg-transparent"
@@ -88,7 +88,7 @@ export default function AuthPage() {
             <input
               type="email"
               name="email"
-              placeholder="Email Address"
+              placeholder={t("auth.emailPlaceholder")}
               value={formData.email}
               onChange={handleChange}
               className="w-full outline-none text-gray-700 bg-transparent"
@@ -101,7 +101,7 @@ export default function AuthPage() {
             <input
               type="password"
               name="password"
-              placeholder="Password"
+              placeholder={t("auth.passwordPlaceholder")}
               value={formData.password}
               onChange={handleChange}
               className="w-full outline-none text-gray-700 bg-transparent"
@@ -115,7 +115,7 @@ export default function AuthPage() {
               <input
                 type="password"
                 name="confirmPassword"
-                placeholder="Confirm Password"
+                placeholder={t("auth.confirmPasswordPlaceholder")}
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 className="w-full outline-none text-gray-700 bg-transparent"
@@ -128,7 +128,7 @@ export default function AuthPage() {
             type="submit"
             className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-medium shadow transition"
           >
-            {isLogin ? "Login" : "Sign Up"}
+            {isLogin ? t("auth.loginButton") : t("auth.signupButton")}
           </button>
         </form>
 
@@ -137,16 +137,16 @@ export default function AuthPage() {
         <p className="text-gray-600 text-sm text-center mt-6">
           {isLogin ? (
             <>
-              Don’t have an account?{" "}
+              {t("auth.noAccount")}{" "}
               <button type="button" onClick={() => setIsLogin(false)} className="text-green-600 font-medium hover:underline">
-                Sign Up
+                {t("auth.signupLink")}
               </button>
             </>
           ) : (
             <>
-              Already have an account?{" "}
+              {t("auth.alreadyAccount")}{" "}
               <button type="button" onClick={() => setIsLogin(true)} className="text-green-600 font-medium hover:underline">
-                Login
+                {t("auth.loginLink")}
               </button>
             </>
           )}

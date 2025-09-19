@@ -1,9 +1,12 @@
 // src/components/UploadPhoto.jsx
 import React, { useState, useCallback } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next"; // ✅ import i18n hook
 
 const UploadPhoto = () => {
-  const Navigate = useNavigate();
+  const navigate = useNavigate();
+  const { t } = useTranslation(); // ✅ translation hook
+
   const [isDragging, setIsDragging] = useState(false);
   const [uploadedImages, setUploadedImages] = useState([]);
 
@@ -69,15 +72,15 @@ const UploadPhoto = () => {
               href="/"
               className="text-gray-600 flex items-center gap-2 hover:text-green-700"
             >
-              ← Back to Home
+              ← {t("upload.backToHome")}
             </a>
           </div>
 
           <h2 className="text-3xl font-bold text-green-700 mt-2">
-            Photo Analysis
+            {t("upload.headerTitle")}
           </h2>
           <p className="text-gray-600 mt-1">
-            Upload crop or soil images for AI-powered insights
+            {t("upload.headerSubtitle")}
           </p>
         </div>
 
@@ -85,10 +88,9 @@ const UploadPhoto = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left Column - Upload Section */}
           <div className="space-y-8">
-            {/* Upload Box */}
             <div className="bg-white rounded-lg shadow-md p-6 h-full">
               <h3 className="text-xl font-semibold text-gray-800 mb-4">
-                Upload Your Photos
+                {t("upload.uploadTitle")}
               </h3>
 
               <div
@@ -120,15 +122,12 @@ const UploadPhoto = () => {
                   </svg>
                   <p className="text-gray-600">
                     <span className="font-medium text-green-600">
-                      Drag and drop
+                      {t("upload.dragDrop")}
                     </span>{" "}
-                    your images here
-                    <br />
-                    or{" "}
+                    {t("upload.or")}{" "}
                     <span className="font-medium text-green-600">
-                      click to browse
-                    </span>{" "}
-                    your files
+                      {t("upload.clickBrowse")}
+                    </span>
                   </p>
                 </div>
 
@@ -143,7 +142,7 @@ const UploadPhoto = () => {
               </div>
 
               <p className="text-sm text-gray-500 mt-4 text-center">
-                Supported formats: JPG, PNG, WEBP • Max size: 10MB per image
+                {t("upload.supportedFormats")}
               </p>
             </div>
           </div>
@@ -152,14 +151,14 @@ const UploadPhoto = () => {
           <div className="space-y-8">
             <div className="bg-white rounded-lg shadow-md p-6 h-full flex flex-col">
               <h3 className="text-xl font-semibold text-gray-800 mb-4">
-                Image Preview
+                {t("upload.previewTitle")}
               </h3>
 
               {uploadedImages.length === 0 ? (
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center flex-1 flex flex-col justify-center">
-                  <p className="text-gray-500">No images uploaded yet</p>
+                  <p className="text-gray-500">{t("upload.noImages")}</p>
                   <p className="text-gray-400 text-sm mt-2">
-                    Upload photos to see preview and analysis
+                    {t("upload.noImagesSubtitle")}
                   </p>
                 </div>
               ) : (
@@ -200,10 +199,12 @@ const UploadPhoto = () => {
                 </div>
               )}
 
-              {/* Action Button inside Preview */}
               <div className="mt-6">
-                <button onClick={()=>Navigate('/result')} className="w-full bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-lg font-medium shadow transition">
-                  Process Photos →
+                <button
+                  onClick={() => navigate("/result")}
+                  className="w-full bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-lg font-medium shadow transition"
+                >
+                  {t("upload.processButton")}
                 </button>
               </div>
             </div>

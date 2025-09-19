@@ -1,9 +1,12 @@
 // src/components/Hero.jsx
 import { FaPen, FaCamera } from "react-icons/fa";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 export default function Hero() {
-  const Navigate = useNavigate();
+  const navigate = useNavigate();
+  const { t } = useTranslation();
+
   return (
     <section className="relative w-full h-screen overflow-hidden">
       {/* Background Video */}
@@ -27,25 +30,29 @@ export default function Hero() {
         {/* Left Content */}
         <div className="flex-1 text-left">
           <h1 className="text-4xl md:text-5xl font-bold text-white leading-tight">
-            Smarter Farming with <br />
-            <span className="text-green-400">AI-Powered</span> Yield Prediction
+            {t("heroTitle")} <br />
+            <span className="text-green-400">{t("heroHighlight")}</span>
           </h1>
 
           <p className="mt-6 text-gray-200 text-lg leading-relaxed max-w-lg">
-            Monitor your crops, analyze soil, and boost productivity with AI
-            insights. Make data-driven decisions for a more sustainable and
-            profitable harvest.
+            {t("heroDescription")}
           </p>
 
           {/* Buttons */}
           <div className="mt-8 flex gap-4">
-            <button onClick={()=>Navigate('/input')} className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-lg font-medium shadow transition">
+            <button
+              onClick={() => navigate('/input')}
+              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-lg font-medium shadow transition"
+            >
               <FaPen />
-              Enter Data Manually →
+              {t("manualButton")}
             </button>
-            <button onClick={()=>Navigate('/upload')} className="flex items-center gap-2 border border-gray-300 bg-white hover:bg-gray-50 text-gray-800 px-5 py-3 rounded-lg font-medium shadow transition">
+            <button
+              onClick={() => navigate('/upload')}
+              className="flex items-center gap-2 border border-gray-300 bg-white hover:bg-gray-50 text-gray-800 px-5 py-3 rounded-lg font-medium shadow transition"
+            >
               <FaCamera />
-              Upload Photo →
+              {t("uploadButton")}
             </button>
           </div>
         </div>
