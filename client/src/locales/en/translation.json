@@ -198,15 +198,19 @@
 
   "resultPage": {
     "noData": "⚠️ No result data available.",
-    "goBack": "Go Back",
-    "title": "🌱 Crop Yield Prediction",
-    "subtitle": "Here’s the detailed analysis of your selected crop",
-    "cropChosen": "🌾 Crop Chosen",
-    "sowingDate": "📅 Sowing Date",
-    "predictedYield": "📊 Predicted Yield",
-    "totalProduction": "🏭 Total Production",
-    "recommendations": "📋 Recommendations",
-    "backHome": "🔙 Back to Home"
+  "goBack": "Go Back",
+  "title": "🌱 Crop Yield Prediction",
+  "subtitle": "Insights and recommendations for your farm.",
+  "cropChosen": "🌾 Selected Crop",
+  "location": "📍 Location",
+  "temperature": "🌡️ Temperature",
+  "humidity": "💧 Humidity",
+  "conditions": "☀️ Conditions",
+  "sowingDate": "📅 Sowing Date",
+  "predictedYield": "📊 Predicted Yield",
+  "totalProduction": "🏭 Total Production",
+  "recommendations": "📋 Recommendations",
+  "backHome": "🔙 Back to Home"
   },
 
   "photoResult": {

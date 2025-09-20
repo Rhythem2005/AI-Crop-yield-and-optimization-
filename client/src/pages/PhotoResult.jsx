@@ -27,7 +27,6 @@ const PhotoResult = () => {
 
   return (
     <div>
-      <Navbar />
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 p-6 md:p-10">
         <div className="max-w-4xl mx-auto bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl p-8 space-y-8">
 
