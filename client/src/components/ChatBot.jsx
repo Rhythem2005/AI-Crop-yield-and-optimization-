@@ -13,7 +13,7 @@ export default function ChatBot() {
   const [messages, setMessages] = useState([
     {
       sender: "bot",
-      text: "🌾 Namaste! Main Kisan Mitra hoon. Aapke kheti-baari ke sawalon ka jawab dene ke liye yahan hoon. 😊"
+      text: "🌾 Namaste! I am Kisan Mitra. I am here to answer your farming-related questions. 😊"
     }
   ]);
   const [input, setInput] = useState("");

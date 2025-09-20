@@ -2,12 +2,52 @@
   "appName": "FarmWise",
   "welcome": "Welcome to our website!",
   "getStarted": "Get Started →",
-  
-  "heroTitle": "Smarter Farming with",
-  "heroHighlight": "AI-Powered Yield Prediction",
-  "heroDescription": "Monitor your crops, analyze soil, and boost productivity with AI insights. Make data-driven decisions for a more sustainable and profitable harvest.",
-  "manualButton": "Add Data →",
-  "uploadButton": "Upload Photo →",
+
+  "chooseRole": {
+    "title": "Choose Your Role",
+    "subtitle": "Select how you'd like to use FarmWise. You can always switch between roles later.",
+    "farmer": {
+      "title": "I'm a Farmer",
+      "description": "List and sell your crops directly to buyers. Manage your farm business with our tools.",
+      "features": [
+        "List your crops and set prices",
+        "Manage orders and deliveries",
+        "Track earnings and analytics",
+        "Connect with verified buyers"
+      ],
+      "continue": "Continue as Farmer"
+    },
+    "buyer": {
+      "title": "I'm a Buyer",
+      "description": "Browse and purchase fresh produce directly from local farmers. Get the best deals.",
+      "features": [
+        "Browse fresh local produce",
+        "Compare prices and quality",
+        "Secure payment and delivery",
+        "Rate and review farmers"
+      ],
+      "continue": "Continue as Buyer"
+    }
+  },
+
+  "hero": {
+    "heroTitle": "Smarter Farming with",
+    "heroHighlight": "AI-Powered Yield Prediction",
+    "heroDescription": "Monitor your crops, analyze soil, and boost productivity with AI insights. Make data-driven decisions for a more sustainable and profitable harvest.",
+    "manualButton": "Add Data →",
+    "uploadButton": "Upload Photo →",
+    "marketplaceButton": "Go to Marketplace →",
+    "transformTitle": "Transform Your Farming Experience",
+    "transformDescription": "Choose how you want to interact with our AI-powered platform. From manual data entry to photo-based analysis, get accurate yield predictions and actionable insights.",
+    "cardManualTitle": "Manual Data Entry",
+    "cardManualDesc": "Enter soil, crop, and weather data manually for precise analysis and tailored insights.",
+    "cardPhotoTitle": "Photo Analysis",
+    "cardPhotoDesc": "Upload images of crops or soil for instant AI-powered health and condition checks.",
+    "cardYieldTitle": "Yield Predictions",
+    "cardYieldDesc": "Get accurate predictions of crop yield based on your provided data or uploaded photos.",
+    "cardMarketplaceTitle": "Marketplace",
+    "cardMarketplaceDesc": "Explore the marketplace to access farming tools, seeds, fertilizers, and more."
+  },
 
   "dashboardTitle": "Farm Dashboard",
   "dashboardDescription": "Choose how you want to provide your farm data for AI-powered yield prediction and insights.",
@@ -51,6 +91,41 @@
   "state": "State",
   "weatherNote": "Weather data will be auto-fetched via API",
 
+  "fertilizerPesticide": "Fertilizer & Pesticide",
+  "fertilizerType": "Fertilizer Type",
+  "fertilizerAmount": "Fertilizer Amount",
+  "pesticideAmount": "Pesticide Amount",
+  "loadingWeather": "Fetching Weather...",
+  "analyzeData": "Analyze Data →",
+
+  "soilTypes": {
+    "Sandy": "Sandy",
+    "Loamy": "Loamy",
+    "Clay": "Clay",
+    "Red": "Red",
+    "Alluvial": "Alluvial"
+  },
+
+  "fertilizerTypes": {
+    "Organic": "Organic",
+    "Inorganic": "Inorganic"
+  },
+
+  "crops": {
+    "Rice": "Rice",
+    "Wheat": "Wheat",
+    "Maize": "Maize",
+    "Cotton": "Cotton",
+    "Sugarcane": "Sugarcane",
+    "Barley": "Barley",
+    "Jowar": "Jowar",
+    "Bajra": "Bajra"
+  },
+
+  "alert": {
+    "backendError": "Failed to connect to backend. Make sure FastAPI is running."
+  },
+
   "auth": {
     "welcomeBack": "Welcome Back",
     "createAccount": "Create an Account",
@@ -82,7 +157,15 @@
     "previewTitle": "Image Preview",
     "noImages": "No images uploaded yet",
     "noImagesSubtitle": "Upload photos to see preview and analysis",
-    "processButton": "Process Photos →"
+    "processButton": "Process Photos →",
+
+    "analysisTitle": "What Our AI Analyzes",
+    "analysisHealthTitle": "Crop Health",
+    "analysisHealthDesc": "Detects plant health, leaf color, and common diseases.",
+    "analysisYieldTitle": "Yield Potential",
+    "analysisYieldDesc": "Estimates expected yield based on plant condition and growth stage.",
+    "analysisRecoTitle": "Recommendations",
+    "analysisRecoDesc": "Provides suggestions for fertilizer, irrigation, and pest control."
   },
 
   "dataTips": {
@@ -124,5 +207,20 @@
     "totalProduction": "🏭 Total Production",
     "recommendations": "📋 Recommendations",
     "backHome": "🔙 Back to Home"
+  },
+
+  "photoResult": {
+    "noResult": "⚠️ No image analysis result available.",
+    "goBack": "Go Back",
+    "header": "Crop Health Analysis Result",
+    "subHeader": "Detailed analysis of your uploaded crop image",
+    "healthScore": "Health Score",
+    "healthy": "Healthy",
+    "healthyLeaves": "Healthy Leaves",
+    "yellowLeaves": "Yellow Leaves",
+    "brownSpots": "Brown Spots",
+    "diagnosis": "Diagnosis",
+    "recommendations": "Recommendations",
+    "uploadAnother": "Upload Another Photo"
   }
 }

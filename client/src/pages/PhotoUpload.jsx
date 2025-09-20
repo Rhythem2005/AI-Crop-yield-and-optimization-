@@ -1,9 +1,11 @@
 import React, { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Upload, Image, Camera } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const PhotoUpload = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [isDragging, setIsDragging] = useState(false);
   const [uploadedImages, setUploadedImages] = useState([]);
@@ -60,7 +62,7 @@ const PhotoUpload = () => {
 
   const handleSubmit = async () => {
     if (uploadedImages.length === 0) {
-      alert("Please upload at least one image before analyzing.");
+      alert(t("upload.alertNoImage"));
       return;
     }
 
@@ -76,7 +78,7 @@ const PhotoUpload = () => {
       navigate("/photo-result", { state: { resultData: data.result } });
     } catch (error) {
       console.error("Upload failed:", error);
-      alert("Failed to upload images. Please try again.");
+      alert(t("upload.alertFailed"));
     }
   };
 
@@ -85,8 +87,8 @@ const PhotoUpload = () => {
       <div className="max-w-6xl mx-auto space-y-8">
         {/* Header */}
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-green-800 mb-2">Crop Image Analysis</h1>
-          <p className="text-gray-600 text-lg">Upload images of your crops to get detailed predictions</p>
+          <h1 className="text-4xl font-bold text-green-800 mb-2">{t("upload.headerTitle")}</h1>
+          <p className="text-gray-600 text-lg">{t("upload.headerSubtitle")}</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -96,13 +98,13 @@ const PhotoUpload = () => {
               <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
                 <Upload className="w-5 h-5 text-green-600" />
               </div>
-              <h2 className="text-xl font-semibold text-gray-800">Upload Your Photos</h2>
+              <h2 className="text-xl font-semibold text-gray-800">{t("upload.uploadTitle")}</h2>
             </div>
 
             <div
               className={`border-2 border-dashed rounded-2xl p-12 text-center cursor-pointer transition-all duration-300 ${
-                isDragging 
-                  ? "border-green-500 bg-green-50" 
+                isDragging
+                  ? "border-green-500 bg-green-50"
                   : "border-gray-200 hover:border-green-300 hover:bg-green-25"
               }`}
               onDragEnter={handleDragEnter}
@@ -114,18 +116,14 @@ const PhotoUpload = () => {
               <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Camera className="w-8 h-8 text-green-600" />
               </div>
-              
-              <h3 className="text-lg font-medium text-gray-800 mb-2">
-                Drag and drop your images here
-              </h3>
-              <p className="text-gray-500 mb-4">
-                or click to browse your files
-              </p>
-              
+
+              <h3 className="text-lg font-medium text-gray-800 mb-2">{t("upload.dragDrop")}</h3>
+              <p className="text-gray-500 mb-4">{t("upload.or")} {t("upload.clickBrowse")}</p>
+
               <button className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
-                Select Photos
+                {t("upload.selectPhotos")}
               </button>
-              
+
               <input
                 id="file-upload"
                 type="file"
@@ -135,22 +133,22 @@ const PhotoUpload = () => {
                 onChange={handleFileChange}
               />
             </div>
-            
+
             <p className="text-sm text-gray-500 mt-4 text-center">
-              Supported formats: JPG, PNG, WEBP • Max size: 10MB per image
+              {t("upload.supportedFormats")}
             </p>
 
             {/* Photo Tips */}
             <div className="mt-6 p-4 bg-green-50 rounded-xl">
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-lg">📸</span>
-                <h4 className="font-medium text-green-800">Photo Tips for Best Results</h4>
+                <h4 className="font-medium text-green-800">{t("upload.tipsTitle")}</h4>
               </div>
               <ul className="text-sm text-green-700 space-y-1">
-                <li>• Take clear, well-lit photos during daylight hours</li>
-                <li>• Capture close-up shots of leaves, stems, and soil</li>
-                <li>• Include multiple angles of the same crop area</li>
-                <li>• Avoid blurry or shadowed images</li>
+                <li>• {t("upload.tips1")}</li>
+                <li>• {t("upload.tips2")}</li>
+                <li>• {t("upload.tips3")}</li>
+                <li>• {t("upload.tips4")}</li>
               </ul>
             </div>
           </div>
@@ -161,7 +159,7 @@ const PhotoUpload = () => {
               <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
                 <Image className="w-5 h-5 text-green-600" />
               </div>
-              <h2 className="text-xl font-semibold text-gray-800">Image Preview</h2>
+              <h2 className="text-xl font-semibold text-gray-800">{t("upload.previewTitle")}</h2>
             </div>
 
             {uploadedImages.length === 0 ? (
@@ -169,12 +167,8 @@ const PhotoUpload = () => {
                 <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <Image className="w-8 h-8 text-gray-400" />
                 </div>
-                <h3 className="text-lg font-medium text-gray-600 mb-2">
-                  No images uploaded yet
-                </h3>
-                <p className="text-gray-500">
-                  Upload photos to see preview and analysis
-                </p>
+                <h3 className="text-lg font-medium text-gray-600 mb-2">{t("upload.noImages")}</h3>
+                <p className="text-gray-500">{t("upload.noImagesSubtitle")}</p>
               </div>
             ) : (
               <>
@@ -201,12 +195,12 @@ const PhotoUpload = () => {
                     </div>
                   ))}
                 </div>
-                
+
                 <button
                   onClick={handleSubmit}
                   className="w-full bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-medium shadow-lg transition-colors"
                 >
-                  Analyze Images ({uploadedImages.length})
+                  {t("upload.processButton", { count: uploadedImages.length })}
                 </button>
               </>
             )}
@@ -219,41 +213,32 @@ const PhotoUpload = () => {
             <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
               <span className="text-green-600 font-bold">🔍</span>
             </div>
-            <h2 className="text-2xl font-semibold text-gray-800">What Our AI Analyzes</h2>
+            <h2 className="text-2xl font-semibold text-gray-800">{t("upload.analysisTitle")}</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Crop Health */}
             <div className="text-center p-6">
               <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl">🌿</span>
               </div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">Crop Health</h3>
-              <p className="text-gray-600 text-sm">
-                Disease detection, nutrient deficiency, growth stage assessment
-              </p>
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">{t("upload.analysisHealthTitle")}</h3>
+              <p className="text-gray-600 text-sm">{t("upload.analysisHealthDesc")}</p>
             </div>
 
-            {/* Yield Prediction */}
             <div className="text-center p-6">
               <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl">📊</span>
               </div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">Yield Prediction</h3>
-              <p className="text-gray-600 text-sm">
-                Estimate expected harvest based on current crop conditions
-              </p>
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">{t("upload.analysisYieldTitle")}</h3>
+              <p className="text-gray-600 text-sm">{t("upload.analysisYieldDesc")}</p>
             </div>
 
-            {/* Recommendations */}
             <div className="text-center p-6">
               <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl">✅</span>
               </div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">Recommendations</h3>
-              <p className="text-gray-600 text-sm">
-                Actionable advice for fertilizer, irrigation, and pest control
-              </p>
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">{t("upload.analysisRecoTitle")}</h3>
+              <p className="text-gray-600 text-sm">{t("upload.analysisRecoDesc")}</p>
             </div>
           </div>
         </div>

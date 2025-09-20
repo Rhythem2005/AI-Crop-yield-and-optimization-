@@ -3,9 +3,11 @@ import { useState } from "react";
 import { FaLeaf, FaSun, FaSeedling, FaFlask } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { getWeatherByCity } from "../utils/weatherAPi";
+import { useTranslation } from "react-i18next";
 
 export default function InputData() {
   const navigate = useNavigate();
+  const { t } = useTranslation(); // <- i18n hook
 
   // ===================== States =====================
   const [ph, setPh] = useState(7);
@@ -42,14 +44,12 @@ export default function InputData() {
   const handleSubmit = async () => {
     setLoading(true);
 
-    // Fetch weather
     let weatherData = { Temp: 25, Humidity: 60, Rainfall: 500 }; // fallback
     if (state) {
       const fetchedWeather = await getWeatherByCity(state);
       if (fetchedWeather) weatherData = fetchedWeather;
     }
 
-    // Build payload
     const formData = {
       Crop: cropName,
       State: state,
@@ -66,7 +66,7 @@ export default function InputData() {
       Fertilizer_Amount: Number(fertilizerAmount),
       Pesticide_Amount: Number(pesticideAmount),
       sowing_date: new Date().toISOString().split("T")[0],
-      area: 1000, // placeholder
+      area: 1000,
     };
 
     try {
@@ -78,7 +78,7 @@ export default function InputData() {
       const data = await response.json();
       navigate("/result", { state: { resultData: data } });
     } catch (err) {
-      alert("Failed to connect to backend. Make sure FastAPI is running.");
+      alert(t("alert.backendError")); // translated alert
       console.error(err);
     }
 
@@ -88,41 +88,38 @@ export default function InputData() {
   return (
     <section className="w-full bg-gradient-to-b from-white to-green-50 py-12 px-6">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-4">
-         
-        </div>
 
         <h2 className="text-3xl md:text-4xl font-bold text-gray-800 flex items-center gap-3">
-          <span className="bg-green-100 text-green-700 p-2 rounded-lg">📊</span> Farm Dashboard
+          <span className="bg-green-100 text-green-700 p-2 rounded-lg">📊</span> {t("dashboardTitle")}
         </h2>
         <p className="mt-2 text-gray-600 text-lg">
-          Monitor your crop health and get AI-powered recommendations
+          {t("dashboardDescription")}
         </p>
 
-        <h3 className="mt-10 mb-6 text-2xl font-semibold text-gray-800">Input Data</h3>
+        <h3 className="mt-10 mb-6 text-2xl font-semibold text-gray-800">{t("inputDataTitle")}</h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
           {/* Soil Data */}
           <div className="bg-white rounded-2xl shadow-md border border-green-100 p-6">
             <h4 className="text-lg font-semibold text-gray-800 flex items-center gap-2 mb-4">
-              <FaLeaf className="text-green-600" /> Soil Data
+              <FaLeaf className="text-green-600" /> {t("soilDataTitle")}
             </h4>
             <div className="space-y-4">
               <div>
-                <label className="text-sm text-gray-600">Soil Type</label>
+                <label className="text-sm text-gray-600">{t("soilType")}</label>
                 <select className="w-full border rounded-lg p-2 mt-1" value={soilType} onChange={(e) => setSoilType(e.target.value)}>
                   {validSoilTypes.map((type) => (
-                    <option key={type} value={type}>{type}</option>
+                    <option key={type} value={type}>{t(`soilTypes.${type}`)}</option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="text-sm text-gray-600">pH Level</label>
+                <label className="text-sm text-gray-600">{t("phLevel")}</label>
                 <div className="flex items-center gap-2">
                   <input type="range" min="0" max="14" step="0.1" value={ph} onChange={(e) => setPh(e.target.value)} className="w-full accent-green-600" />
                   <span className={`${getPhColor(ph)} px-3 py-1 rounded-lg text-sm font-medium`}>{ph}</span>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Optimal range: 6.0–8.0 for most crops</p>
+                <p className="text-xs text-gray-500 mt-1">{t("phOptimalRange")}</p>
               </div>
             </div>
           </div>
@@ -130,12 +127,12 @@ export default function InputData() {
           {/* Nutrients NPK */}
           <div className="bg-white rounded-2xl shadow-md border border-purple-100 p-6">
             <h4 className="text-lg font-semibold text-gray-800 flex items-center gap-2 mb-4">
-              <FaSeedling className="text-purple-600" /> Nutrients (NPK)
+              <FaSeedling className="text-purple-600" /> {t("nutrientsTitle")}
             </h4>
             <div className="space-y-4">
               {["N", "P", "K"].map((nutrient) => (
                 <div key={nutrient}>
-                  <label className="text-sm text-gray-600">{nutrient}</label>
+                  <label className="text-sm text-gray-600">{t(nutrient)}</label>
                   <div className="flex items-center gap-2">
                     <input
                       type="range"
@@ -157,28 +154,28 @@ export default function InputData() {
           {/* Location */}
           <div className="bg-white rounded-2xl shadow-md border border-blue-100 p-6">
             <h4 className="text-lg font-semibold text-gray-800 flex items-center gap-2 mb-4">
-              <FaSun className="text-yellow-500" /> Location & Weather
+              <FaSun className="text-yellow-500" /> {t("locationWeatherTitle")}
             </h4>
             <div>
-              <label className="text-sm text-gray-600">State</label>
+              <label className="text-sm text-gray-600">{t("state")}</label>
               <select className="w-full border rounded-lg p-2 mt-1" value={state} onChange={(e) => setState(e.target.value)}>
                 {validStates.map((stateName) => (
                   <option key={stateName} value={stateName}>{stateName}</option>
                 ))}
               </select>
-              <p className="text-xs text-gray-500 mt-1">Weather data will be auto-fetched via API</p>
+              <p className="text-xs text-gray-500 mt-1">{t("weatherNote")}</p>
             </div>
           </div>
 
           {/* Crop Info */}
           <div className="bg-white rounded-2xl shadow-md border border-yellow-100 p-6">
             <h4 className="text-lg font-semibold text-gray-800 flex items-center gap-2 mb-4">
-              <FaSeedling className="text-yellow-600" /> Crop Info
+              <FaSeedling className="text-yellow-600" /> {t("cropInfo")}
             </h4>
             <div>
-              <label className="text-sm text-gray-600">Crop Name</label>
+              <label className="text-sm text-gray-600">{t("cropName")}</label>
               <select className="w-full border rounded-lg p-2 mt-1" value={cropName} onChange={(e) => setCropName(e.target.value)}>
-                {validCrops.map((crop) => <option key={crop} value={crop}>{crop}</option>)}
+                {validCrops.map((crop) => <option key={crop} value={crop}>{t(`crops.${crop}`)}</option>)}
               </select>
             </div>
           </div>
@@ -186,22 +183,22 @@ export default function InputData() {
           {/* Fertilizer & Pesticide */}
           <div className="bg-white rounded-2xl shadow-md border border-orange-100 p-6">
             <h4 className="text-lg font-semibold text-gray-800 flex items-center gap-2 mb-4">
-              <FaFlask className="text-orange-600" /> Fertilizer & Pesticide
+              <FaFlask className="text-orange-600" /> {t("fertilizerPesticide")}
             </h4>
             <div className="space-y-4">
               <div>
-                <label className="text-sm text-gray-600">Fertilizer Type</label>
+                <label className="text-sm text-gray-600">{t("fertilizerType")}</label>
                 <select className="w-full border rounded-lg p-2 mt-1" value={fertilizerType} onChange={(e) => setFertilizerType(e.target.value)}>
-                  {validFertilizerTypes.map((type) => <option key={type} value={type}>{type}</option>)}
+                  {validFertilizerTypes.map((type) => <option key={type} value={type}>{t(`fertilizerTypes.${type}`)}</option>)}
                 </select>
               </div>
               <div>
-                <label className="text-sm text-gray-600">Fertilizer Amount</label>
+                <label className="text-sm text-gray-600">{t("fertilizerAmount")}</label>
                 <input type="range" min="0" max="200" value={fertilizerAmount} onChange={(e) => setFertilizerAmount(e.target.value)} className="w-full accent-green-600" />
                 <span className={`${getFertilizerColor(fertilizerAmount)} px-3 py-1 rounded-lg text-sm font-medium`}>{fertilizerAmount}</span>
               </div>
               <div>
-                <label className="text-sm text-gray-600">Pesticide Amount</label>
+                <label className="text-sm text-gray-600">{t("pesticideAmount")}</label>
                 <input type="range" min="0" max="15" step="0.5" value={pesticideAmount} onChange={(e) => setPesticideAmount(e.target.value)} className="w-full accent-red-600" />
                 <span className={`${getPesticideColor(pesticideAmount)} px-3 py-1 rounded-lg text-sm font-medium`}>{pesticideAmount}L</span>
               </div>
@@ -211,16 +208,9 @@ export default function InputData() {
 
         <div className="mt-10 flex justify-center">
           <button onClick={handleSubmit} disabled={loading} className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-semibold transition">
-            {loading ? "Fetching Weather..." : "Analyze Data →"}
+            {loading ? t("loadingWeather") : t("analyzeData")}
           </button>
         </div>
-
-        {/* Floating Chat Icon
-        <div className="fixed bottom-6 right-6 z-50 flex flex-col items-center">
-          <div onClick={() => navigate("/chatbot")} className="group w-14 h-14 flex items-center justify-center bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-full shadow-xl hover:scale-110 hover:shadow-2xl transition-transform cursor-pointer animate-bounce" title="Chat with AI">
-            💬
-          </div>
-        </div> */}
       </div>
     </section>
   );

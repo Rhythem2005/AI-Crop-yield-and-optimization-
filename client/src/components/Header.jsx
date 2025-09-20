@@ -27,40 +27,39 @@ export default function Hero() {
 
         {/* Content */}
         <div className="relative z-10 max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between px-6 md:px-12 py-20 gap-10 h-full">
-          
           {/* Left Content */}
           <div className="flex-1 text-left">
             <h1 className="text-4xl md:text-5xl font-bold text-white leading-tight">
-              {t("heroTitle")} <br />
-              <span className="text-green-400">{t("heroHighlight")}</span>
+              {t("hero.heroTitle")} <br />
+              <span className="text-green-400">{t("hero.heroHighlight")}</span>
             </h1>
 
             <p className="mt-6 text-gray-200 text-lg leading-relaxed max-w-lg">
-              {t("heroDescription")}
+              {t("hero.heroDescription")}
             </p>
 
             {/* Buttons */}
             <div className="mt-8 flex gap-4">
               <button
-                onClick={() => navigate('/input')}
-                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-lg font-medium shadow transition"
+                onClick={() => navigate("/input")}
+                className="px-5 py-3 text-sm md:text-base rounded-lg bg-green-600 text-white hover:bg-green-700"
               >
                 <FaPen />
-                {t("manualButton")}
+                {t("hero.manualButton")}
               </button>
               <button
-                onClick={() => navigate('/upload')}
+                onClick={() => navigate("/upload")}
                 className="flex items-center gap-2 border border-gray-300 bg-white hover:bg-gray-50 text-gray-800 px-5 py-3 rounded-lg font-medium shadow transition"
               >
                 <FaCamera />
-                {t("uploadButton")}
+                {t("hero.uploadButton")}
               </button>
               <button
-                onClick={() => navigate('/mdashboard')}
+                onClick={() => navigate("/mdashboard")}
                 className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-lg font-medium shadow transition"
               >
                 <FaStore />
-                Marketplace
+                {t("hero.marketplaceButton")}
               </button>
             </div>
           </div>
@@ -95,17 +94,16 @@ export default function Hero() {
         </div>
       </section>
 
-      {/* Transform Your Farming with AI Intelligence Section */}
+      {/* Transform Section */}
       <section className="bg-gradient-to-br from-gray-50 to-white py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           {/* Main Header */}
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-800 mb-6">
-              Transform Your Farming with AI Intelligence
+              {t("hero.transformTitle")}
             </h2>
             <p className="text-gray-600 text-lg md:text-xl max-w-4xl mx-auto leading-relaxed">
-              Our platform combines cutting-edge AI technology with agricultural expertise to give you 
-              actionable insights for better crop yields.
+              {t("hero.transformDescription")}
             </p>
           </div>
 
@@ -116,9 +114,11 @@ export default function Hero() {
               <div className="w-20 h-20 bg-green-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
                 <FaPen className="text-white text-2xl" />
               </div>
-              <h3 className="text-2xl font-semibold text-gray-800 mb-4">Manual Data Entry</h3>
+              <h3 className="text-2xl font-semibold text-gray-800 mb-4">
+                {t("hero.cardManualTitle")}
+              </h3>
               <p className="text-gray-600 leading-relaxed">
-                Input your soil conditions, weather data, and crop information for precise AI analysis.
+                {t("hero.cardManualDesc")}
               </p>
             </div>
 
@@ -127,9 +127,11 @@ export default function Hero() {
               <div className="w-20 h-20 bg-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
                 <FaCamera className="text-white text-2xl" />
               </div>
-              <h3 className="text-2xl font-semibold text-gray-800 mb-4">Photo Analysis</h3>
+              <h3 className="text-2xl font-semibold text-gray-800 mb-4">
+                {t("hero.cardPhotoTitle")}
+              </h3>
               <p className="text-gray-600 leading-relaxed">
-                Simply upload photos of your crops or soil for instant AI-powered insights and recommendations.
+                {t("hero.cardPhotoDesc")}
               </p>
             </div>
 
@@ -138,22 +140,24 @@ export default function Hero() {
               <div className="w-20 h-20 bg-yellow-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
                 <span className="text-white text-3xl">🌾</span>
               </div>
-              <h3 className="text-2xl font-semibold text-gray-800 mb-4">Yield Predictions</h3>
+              <h3 className="text-2xl font-semibold text-gray-800 mb-4">
+                {t("hero.cardYieldTitle")}
+              </h3>
               <p className="text-gray-600 leading-relaxed">
-                Get accurate yield forecasts to optimize your farming strategies and maximize productivity.
+                {t("hero.cardYieldDesc")}
               </p>
             </div>
 
             {/* Marketplace */}
-            <div
-              className="bg-purple-50 rounded-3xl p-8 text-center cursor-pointer hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
-            >
+            <div className="bg-purple-50 rounded-3xl p-8 text-center cursor-pointer hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
               <div className="w-20 h-20 bg-purple-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
                 <FaStore className="text-white text-2xl" />
               </div>
-              <h3 className="text-2xl font-semibold text-gray-800 mb-4">Marketplace</h3>
+              <h3 className="text-2xl font-semibold text-gray-800 mb-4">
+                {t("hero.cardMarketplaceTitle")}
+              </h3>
               <p className="text-gray-600 leading-relaxed">
-                Connect farmers and buyers directly through our secure marketplace for fair trade and better opportunities.
+                {t("hero.cardMarketplaceDesc")}
               </p>
             </div>
           </div>
