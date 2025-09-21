@@ -1,6 +1,7 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import ReportGenerator from "../components/ReportGenerator";
 
 const ResultPage = () => {
   const location = useLocation();
@@ -71,11 +72,16 @@ const ResultPage = () => {
           </div>
         )}
 
-        {/* Sowing, Yield & Production */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Sowing, Area, Yield & Production */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="p-5 bg-yellow-50 rounded-xl shadow-sm">
             <h2 className="text-lg font-semibold text-yellow-800">{t("resultPage.sowingDate")}</h2>
             <p className="text-gray-700 mt-1">{resultData.sowing_date || t("notProvided")}</p>
+          </div>
+
+          <div className="p-5 bg-teal-50 rounded-xl shadow-sm">
+            <h2 className="text-lg font-semibold text-teal-800">📐 Farm Area</h2>
+            <p className="text-gray-700 mt-1">{(resultData.area || 0)} hectares</p>
           </div>
 
           <div className="p-5 bg-orange-50 rounded-xl shadow-sm">
@@ -100,6 +106,9 @@ const ResultPage = () => {
             </ul>
           </div>
         )}
+
+        {/* Report Generator */}
+        <ReportGenerator resultData={resultData} />
 
         {/* Back Button */}
         <div className="flex justify-center pt-4">

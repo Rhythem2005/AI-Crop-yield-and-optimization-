@@ -20,6 +20,7 @@ export default function InputData() {
   const [state, setState] = useState("Punjab");
   const [cropName, setCropName] = useState("Rice");
   const [fertilizerType, setFertilizerType] = useState("Organic");
+  const [area, setArea] = useState(0.1); // <-- Added Farm Area
   const [loading, setLoading] = useState(false);
 
   const validStates = [
@@ -66,7 +67,7 @@ export default function InputData() {
       Fertilizer_Amount: Number(fertilizerAmount),
       Pesticide_Amount: Number(pesticideAmount),
       sowing_date: new Date().toISOString().split("T")[0],
-      area: 1000,
+      area: Number(area), // <-- Use the state value
     };
 
     try {
@@ -177,6 +178,27 @@ export default function InputData() {
               <select className="w-full border rounded-lg p-2 mt-1" value={cropName} onChange={(e) => setCropName(e.target.value)}>
                 {validCrops.map((crop) => <option key={crop} value={crop}>{t(`crops.${crop}`)}</option>)}
               </select>
+            </div>
+
+            {/* ========== Added Area Input ========== */}
+            <div className="mt-4">
+              <label className="text-sm text-gray-600">{t("farmArea")}</label>
+              <div className="flex items-center gap-2 mt-1">
+                <input
+                  type="number"
+                  min="0.01"
+                  max="1000"
+                  step="0.01"
+                  value={area}
+                  onChange={(e) => setArea(e.target.value)}
+                  className="w-full border rounded-lg p-2"
+                  placeholder="0.1"
+                />
+                <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-sm font-medium">
+                  {area} ha
+                </span>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">{t("farmAreaNote")}</p>
             </div>
           </div>
 

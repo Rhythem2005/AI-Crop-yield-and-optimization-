@@ -134,7 +134,8 @@ async def predict_yield_api(data: YieldInput):
         dmatrix = xgb.DMatrix(df_input)
         predicted_yield = float(model.predict(dmatrix)[0])
 
-        total_production = float(predicted_yield * input_data["area"] / 1000)
+        total_production_kg = predicted_yield * input_data["area"]  # kg
+        total_production_tonnes = total_production_kg / 1000  # Convert kg to tonnes
 
         # Recommendations
         recommendations = []
@@ -215,12 +216,13 @@ async def predict_yield_api(data: YieldInput):
         result = {
             "crop_name": input_data["Crop"],
             "location": input_data["State"],
+            "area": input_data["area"],
             "weather": {
             "temperature": input_data["Temp"],
             "humidity": input_data["Humidity"],
             "description": "Data from API"},
             "predicted_yield_kgha": predicted_yield,
-            "total_production_tonnes": total_production,
+            "total_production_tonnes": total_production_tonnes,
             "recommendations": recommendations,
             "sowing_date": input_data["sowing_date"]
         }
