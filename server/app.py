@@ -23,7 +23,6 @@ app = FastAPI(title="Crop Prediction & Image Analysis API")
 # ==============================
 # CORS Middleware
 # ==============================
-# (kept permissive origin from your backend; change in production if needed)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -43,12 +42,12 @@ except FileNotFoundError:
     print("Error: 'crop_yield_model.json' not found. Place it in the project folder.")
     raise
 
-# OAuth2 scheme (for dependency injection / protected routes)
+# OAuth2 scheme
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 
 # ==============================
-# AUTH ROUTES (from friend's code)
+# AUTH ROUTES
 # ==============================
 @app.post("/signup")
 async def signup(user: schemas.SignupModel):
@@ -77,7 +76,6 @@ async def login(user: schemas.LoginModel):
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-# Dependency: get current user (use with Depends(get_current_user) on protected routes)
 async def get_current_user(token: str = Depends(oauth2_scheme)):
     payload = verify_token(token)
     if payload is None:
@@ -91,7 +89,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 
 
 # ==============================
-# Yield Prediction (your original code)
+# Yield Prediction
 # ==============================
 class YieldInput(BaseModel):
     Crop: str
@@ -117,27 +115,21 @@ async def predict_yield_api(data: YieldInput):
     input_data = data.dict()
 
     try:
-        # Convert to DataFrame
         df_input = pd.DataFrame([input_data])
 
-        # XGBoost needs DMatrix for prediction
-        # Encode categorical columns for XGBoost
         categorical_cols = ['Crop', 'State', 'soil_type', 'Fertilizer_Type']
         for col in categorical_cols:
             df_input[col] = df_input[col].astype('category').cat.codes
 
-        # Drop sowing_date column because model doesn't use it
         if 'sowing_date' in df_input.columns:
             df_input = df_input.drop(columns=['sowing_date'])
 
-        # XGBoost DMatrix for prediction
         dmatrix = xgb.DMatrix(df_input)
         predicted_yield = float(model.predict(dmatrix)[0])
 
-        total_production_kg = predicted_yield * input_data["area"]  # kg
-        total_production_tonnes = total_production_kg / 1000  # Convert kg to tonnes
+        total_production_kg = predicted_yield * input_data["area"]
+        total_production_tonnes = total_production_kg / 1000
 
-        # Recommendations
         recommendations = []
 
         # Nitrogen
@@ -172,7 +164,7 @@ async def predict_yield_api(data: YieldInput):
         else:
             recommendations.append("🧪 Soil pH is optimal.")
 
-        # Rainfall / Irrigation
+        # Rainfall
         if input_data["Rainfall"] < 200:
             recommendations.append("💧 Low rainfall detected. Irrigation is necessary.")
         elif input_data["Rainfall"] > 800:
@@ -218,9 +210,9 @@ async def predict_yield_api(data: YieldInput):
             "location": input_data["State"],
             "area": input_data["area"],
             "weather": {
-            "temperature": input_data["Temp"],
-            "humidity": input_data["Humidity"],
-            "description": "Data from API"},
+                "temperature": input_data["Temp"],
+                "humidity": input_data["Humidity"],
+                "description": "Data from API"},
             "predicted_yield_kgha": predicted_yield,
             "total_production_tonnes": total_production_tonnes,
             "recommendations": recommendations,
@@ -234,7 +226,7 @@ async def predict_yield_api(data: YieldInput):
 
 
 # ==============================
-# Image Analysis (your original code)
+# Image Analysis
 # ==============================
 def analyze_crop_health_detailed(image_path, crop_type="Wheat"):
     img = cv2.imread(image_path)
@@ -273,17 +265,144 @@ def analyze_crop_health_detailed(image_path, crop_type="Wheat"):
         "recommendations": []
     }
 
+    # --- Nitrogen deficiency (yellow) ---
     if yellow_ratio > 0.05:
-        analysis["diagnosis"].append("Nitrogen deficiency detected (yellow leaves).")
-        analysis["recommendations"].append("Apply nitrogen-rich fertilizer.")
+        analysis["diagnosis"] += [
+            "Nitrogen deficiency detected (yellow leaves).",
+            "Yellowing is reducing chlorophyll production.",
+            "Lower leaves are more affected, indicating mobile nutrient deficiency.",
+            "Crop growth rate may be slowing due to poor photosynthesis.",
+            "Yield potential could be reduced if not corrected."
+        ]
+        analysis["recommendations"] += [
+            "Apply nitrogen-rich fertilizer immediately (e.g., urea).",
+            "Consider foliar spray with urea for quick absorption.",
+            "Incorporate organic manure for long-term nitrogen supply.",
+            "Avoid overwatering, as it leaches nitrogen from soil.",
+            "Monitor crop weekly for improvement in leaf greenness."
+        ]
+
+    # --- Disease / pest (brown) ---
     if brown_ratio > 0.02:
-        analysis["diagnosis"].append("Possible disease or pest attack (brown/black spots).")
-        analysis["recommendations"].append("Inspect crop for pests/diseases and use appropriate treatment.")
+        analysis["diagnosis"] += [
+            "Possible disease or pest attack (brown/black spots).",
+            "Spots may indicate fungal infections like leaf blight.",
+            "Irregular lesions suggest pest chewing damage.",
+            "Photosynthesis efficiency is likely reduced.",
+            "Risk of spread across the crop if untreated."
+        ]
+        analysis["recommendations"] += [
+            "Inspect leaves with magnifying lens for pests/fungal spores.",
+            "Apply recommended fungicide/pesticide for the crop type.",
+            "Remove and burn heavily affected leaves to prevent spread.",
+            "Ensure proper field ventilation to reduce humidity.",
+            "Rotate crops next season to break pest/disease cycle."
+        ]
+
+    # --- Healthy crop ---
     if green_ratio > 0.8 and yellow_ratio < 0.05 and brown_ratio < 0.02:
-        analysis["diagnosis"].append("Crop appears healthy.")
-        analysis["recommendations"].append("Maintain regular irrigation and monitoring.")
+        analysis["diagnosis"] += [
+            "Crop appears healthy.",
+            "Leaves show strong green color, indicating good chlorophyll.",
+            "Nutrient balance appears sufficient.",
+            "Minimal pest/disease symptoms detected.",
+            "Overall growth condition is optimal."
+        ]
+        analysis["recommendations"] += [
+            "Maintain regular irrigation schedule.",
+            "Continue applying balanced NPK fertilizer.",
+            "Ensure proper weed management to avoid competition.",
+            "Keep monitoring for early signs of stress.",
+            "Plan preventive fungicide spray if season is humid."
+        ]
+
+    # --- Severe fungal damage ---
+    if green_ratio < 0.7 and brown_ratio > 0.1:
+        analysis["diagnosis"] += [
+            "Severe leaf damage due to fungal infection or pests.",
+            "Large areas of necrosis visible.",
+            "Green cover significantly reduced.",
+            "Crop canopy may not intercept sunlight effectively.",
+            "High yield loss risk if untreated."
+        ]
+        analysis["recommendations"] += [
+            "Apply systemic fungicide immediately.",
+            "Improve drainage to reduce fungal growth.",
+            "Avoid excessive irrigation.",
+            "Spray neem oil or biocontrol agents as eco-friendly option.",
+            "Consult local agri expert for targeted treatment."
+        ]
+
+    # --- Nutrient deficiency (yellow + low green) ---
+    if yellow_ratio > 0.1 and green_ratio < 0.6:
+        analysis["diagnosis"] += [
+            "Significant nutrient deficiency detected.",
+            "Likely nitrogen + potassium imbalance.",
+            "Chlorosis spreading across canopy.",
+            "Photosynthesis and energy transfer hampered.",
+            "Risk of stunted growth and low yield."
+        ]
+        analysis["recommendations"] += [
+            "Apply balanced NPK fertilizer blend.",
+            "Use foliar sprays with micronutrients.",
+            "Add compost or manure to improve soil fertility.",
+            "Check pH of soil to ensure nutrient availability.",
+            "Repeat treatment within 10–14 days if symptoms persist."
+        ]
+
+    # --- Water stress (yellow + green) ---
+    if yellow_ratio > 0.08 and brown_ratio < 0.02 and green_ratio > 0.6:
+        analysis["diagnosis"] += [
+            "Possible water stress or early drought symptoms.",
+            "Yellowing edges while center remains green.",
+            "Crop under mild stress conditions.",
+            "Soil moisture may be insufficient.",
+            "Stress can progress quickly if untreated."
+        ]
+        analysis["recommendations"] += [
+            "Increase irrigation frequency slightly.",
+            "Check soil moisture before watering.",
+            "Use mulch to conserve soil water.",
+            "Avoid waterlogging while irrigating.",
+            "Plan irrigation around cooler hours of day."
+        ]
+
+    # --- Combined fungal + nutrient stress ---
+    if yellow_ratio > 0.07 and brown_ratio > 0.07:
+        analysis["diagnosis"] += [
+            "Combined nutrient stress and fungal infection risk.",
+            "Yellowing + brown spots suggest multiple stress factors.",
+            "Nutrient uptake may be blocked by disease.",
+            "Leaves losing photosynthetic area rapidly.",
+            "Crop weakening under combined pressure."
+        ]
+        analysis["recommendations"] += [
+            "Apply balanced fertilizer along with fungicide.",
+            "Remove infected plant parts promptly.",
+            "Improve irrigation drainage.",
+            "Use resistant crop variety in next cycle.",
+            "Strengthen crop with organic growth boosters."
+        ]
+
+    # --- Very poor health ---
+    if green_ratio < 0.5:
+        analysis["diagnosis"] += [
+            "Overall crop health is very poor.",
+            "Less than half of canopy is healthy.",
+            "Severe stress detected across the field.",
+            "High chance of crop failure if untreated.",
+            "Emergency intervention required."
+        ]
+        analysis["recommendations"] += [
+            "Conduct urgent soil and water quality tests.",
+            "Reapply broad-spectrum fertilizer.",
+            "Apply fungicide if fungal spread visible.",
+            "Ensure proper pest monitoring immediately.",
+            "Consult agronomist for last-stage recovery plan."
+        ]
 
     return analysis
+
 
 
 @app.post("/analyze_crop_image")
