@@ -2,6 +2,7 @@ import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import ReportGenerator from "../components/ReportGenerator";
+import EconomicAnalysis from "../components/EconomicAnalysis";
 
 const ResultPage = () => {
   const location = useLocation();
@@ -106,7 +107,7 @@ const ResultPage = () => {
             </ul>
           </div>
         )}
-
+        <EconomicAnalysis resultData={resultData} />
         {/* Report Generator */}
         <ReportGenerator resultData={resultData} />
 
