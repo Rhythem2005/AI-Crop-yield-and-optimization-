@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { FaSeedling, FaUserCircle, FaSignOutAlt } from "react-icons/fa";
+import { FaSeedling, FaUserCircle, FaSignOutAlt, FaShieldAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext"; // Import the auth context
 
@@ -20,6 +20,10 @@ export default function Navbar() {
       // Redirect to login if not authenticated
       navigate("/login");
     }
+  };
+
+  const handleInsuranceClick = () => {
+    navigate("/selectinsurance");
   };
 
   const handleProfileClick = () => {
@@ -45,7 +49,7 @@ export default function Navbar() {
         </button>
       </div>
 
-      {/* Right: Languages + Marketplace + Auth */}
+      {/* Right: Languages + Insurance + Marketplace + Auth */}
       <div className="flex items-center gap-3">
         {/* Language buttons */}
         <button
@@ -67,6 +71,15 @@ export default function Navbar() {
           }`}
         >
           HI
+        </button>
+
+        {/* Insurance */}
+        <button
+          onClick={handleInsuranceClick}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full font-medium transition flex items-center gap-2"
+        >
+          <FaShieldAlt className="text-sm" />
+          <span>Insurance</span>
         </button>
 
         {/* Marketplace */}

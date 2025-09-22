@@ -226,5 +226,35 @@
     "diagnosis": "Diagnosis",
     "recommendations": "Recommendations",
     "uploadAnother": "Upload Another Photo"
+  },
+
+    "insuranceRole": {
+    "title": "Choose Your Insurance Option",
+    "subtitle": "Select how you'd like to use our insurance services. You can always switch between options later.",
+
+    "recommendations": {
+      "title": "Insurance Recommendations",
+      "description": "Get personalized insurance recommendations based on your farm, crops, and risk factors using AI-powered analysis.",
+      "features": [
+        "AI-powered policy suggestions",
+        "Compare coverage options",
+        "Estimate loss protection",
+        "Quick apply process"
+      ],
+      "continue": "Continue to Recommendations"
+    },
+
+    "claims": {
+      "title": "Claim Insurance",
+      "description": "Submit and track your insurance claims easily with real-time processing and faster settlements.",
+      "features": [
+        "Easy claim submission",
+        "Upload documents and details",
+        "Track claim status",
+        "Faster approval & settlement"
+      ],
+      "continue": "Continue to Claims"
+    }
   }
+
 }

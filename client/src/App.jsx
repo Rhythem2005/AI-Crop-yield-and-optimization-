@@ -18,6 +18,10 @@ import Bproduct from "./pages/Bproduct";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./contexts/AuthContext";
 import ChatBot from "./components/ChatBot"; 
+import Ipage from "./pages/Ipage";
+import Iclaimpage from "./pages/Iclaimpage";
+import Iselect from "./pages/Iselect";
+
 
 const App = () => {
   return (
@@ -96,6 +100,35 @@ const App = () => {
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path="/insurance"
+            element={
+              <ProtectedRoute>
+                <Ipage />
+              </ProtectedRoute>
+            }
+          />
+
+
+          <Route
+            path="/claiminsurance"
+            element={
+              <ProtectedRoute>
+                <Iclaimpage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/selectinsurance"
+            element={
+              <ProtectedRoute>
+                <Iselect />
+              </ProtectedRoute>
+            }
+          />
+
           <Route
             path="/bproduct"
             element={
