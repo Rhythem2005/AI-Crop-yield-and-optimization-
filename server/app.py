@@ -13,7 +13,6 @@ import warnings
 import httpx
 import os
 import random
-from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="Crop Prediction & Image Analysis API")
 
@@ -28,19 +27,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 # Local imports (keep these files as they are in your project)
 from database import users_collection
 from auth import get_password_hash, verify_password, create_access_token, verify_token
 import schemas
 
 warnings.filterwarnings("ignore")
-
-
-# ==============================
-# CORS Middleware
-# ==============================
-
 
 # ==============================
 # Load ML Model
@@ -107,7 +99,6 @@ STATE_TO_CITY = {
     "Karnataka": "Bengaluru",
     "Tamil Nadu": "Chennai",
     "Delhi": "Delhi",
-    # Add more states if needed
 }
 
 OPENWEATHER_KEY = os.getenv("OPENWEATHER_KEY")
@@ -115,7 +106,7 @@ OPENWEATHER_KEY = os.getenv("OPENWEATHER_KEY")
 async def fetch_weather(state: str):
     city = STATE_TO_CITY.get(state, state)
     if not OPENWEATHER_KEY:
-        return {"Temp": 25, "Humidity": 60, "Rainfall": 500}  # fallback
+        return {"Temp": 25, "Humidity": 60, "Rainfall": 500}
 
     url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={OPENWEATHER_KEY}&units=metric"
     try:
@@ -159,7 +150,6 @@ async def predict_yield_api(data: YieldInput):
     input_data = data.dict()
 
     try:
-        # Fetch live weather
         weather_data = await fetch_weather(input_data["State"])
         Temp = weather_data["Temp"]
         Humidity = weather_data["Humidity"]
@@ -182,9 +172,6 @@ async def predict_yield_api(data: YieldInput):
 
         recommendations = []
 
-        # ==============================
-        # Nutrient Recommendations
-        # ==============================
         if input_data["N"] < 30:
             msgs = [
                 "🌱 Nitrogen very low: Apply 25–30 kg/ha urea immediately.",
@@ -251,7 +238,6 @@ async def predict_yield_api(data: YieldInput):
             ]
             recommendations.append(random.choice(msgs))
 
-        # pH
         if input_data["pH"] < 6.0:
             msgs = [
                 "🧪 Soil is acidic. Apply lime to raise pH and improve nutrient uptake.",
@@ -274,7 +260,6 @@ async def predict_yield_api(data: YieldInput):
             ]
             recommendations.append(random.choice(msgs))
 
-        # Weather-based recommendations
         if Rainfall < 200:
             msgs = [
                 "💧 Low rainfall detected. Irrigation is necessary.",
@@ -341,7 +326,6 @@ async def predict_yield_api(data: YieldInput):
             ]
             recommendations.append(random.choice(msgs))
 
-        # Fertilizer & Pesticide
         if input_data["Fertilizer_Amount"] < 50:
             msgs = [
                 f"🌾 Fertilizer amount is low. Consider increasing {input_data['Fertilizer_Type']} fertilizer for optimal growth.",
@@ -349,6 +333,7 @@ async def predict_yield_api(data: YieldInput):
                 f"🌾 Insufficient fertilizer applied. Increase {input_data['Fertilizer_Type']} usage."
             ]
             recommendations.append(random.choice(msgs))
+
         if input_data["Pesticide_Amount"] < 5:
             msgs = [
                 "🐛 Pesticide amount is low. Regular pest monitoring is recommended.",
@@ -357,7 +342,6 @@ async def predict_yield_api(data: YieldInput):
             ]
             recommendations.append(random.choice(msgs))
 
-        # Crop health status
         if predicted_yield > 80:
             crop_status = "Excellent"
             msgs = [
@@ -402,15 +386,8 @@ async def predict_yield_api(data: YieldInput):
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=400)
 
-
-
 # ==============================
 # Image Analysis
-# ==============================
-import random
-
-# ==============================
-# Image Analysis (Multiple Statements)
 # ==============================
 def analyze_crop_health_detailed(image_path, crop_type="Wheat"):
     img = cv2.imread(image_path)
@@ -435,7 +412,6 @@ def analyze_crop_health_detailed(image_path, crop_type="Wheat"):
     gray_mask = cv2.inRange(hsv, (0, 0, 40), (180, 50, 180))
     gray_count = np.sum(gray_mask > 0)
 
-    # Ratios
     green_ratio = green_count / total_pixels
     yellow_ratio = yellow_count / total_pixels
     brown_ratio = brown_count / total_pixels
@@ -456,7 +432,6 @@ def analyze_crop_health_detailed(image_path, crop_type="Wheat"):
         "recommendations": []
     }
 
-    # --- Nitrogen deficiency (yellow) ---
     if yellow_ratio > 0.05:
         nitrogen_diag = [
             "Nitrogen deficiency detected (yellow leaves).",
@@ -475,7 +450,6 @@ def analyze_crop_health_detailed(image_path, crop_type="Wheat"):
         analysis["diagnosis"] += random.sample(nitrogen_diag, k=3)
         analysis["recommendations"] += random.sample(nitrogen_reco, k=3)
 
-    # --- Disease / pest (brown) ---
     if brown_ratio > 0.02:
         disease_diag = [
             "Possible disease or pest attack (brown spots).",
@@ -494,7 +468,6 @@ def analyze_crop_health_detailed(image_path, crop_type="Wheat"):
         analysis["diagnosis"] += random.sample(disease_diag, k=3)
         analysis["recommendations"] += random.sample(disease_reco, k=3)
 
-    # --- Dry/gray patches ---
     if gray_ratio > 0.05:
         gray_diag = [
             "Signs of drought stress observed.",
@@ -513,7 +486,6 @@ def analyze_crop_health_detailed(image_path, crop_type="Wheat"):
         analysis["diagnosis"] += random.sample(gray_diag, k=3)
         analysis["recommendations"] += random.sample(gray_reco, k=3)
 
-    # --- Healthy crop ---
     if green_ratio > 0.8 and yellow_ratio < 0.05 and brown_ratio < 0.02 and gray_ratio < 0.05:
         healthy_diag = [
             "Crop looks healthy and vigorous.",
