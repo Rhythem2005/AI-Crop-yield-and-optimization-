@@ -19,7 +19,9 @@ app = FastAPI(title="Crop Prediction & Image Analysis API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://ai-crop-yield-and-optimization-vft5.vercel.app",  # Your frontend URL
+        "https://ai-crop-yield-and-optimization-vft5.vercel.app", 
+        "https://ai-crop-yield-and-optimization-vft5-190xwqreu.vercel.app",
+        "https://ai-crop-yield-and-optimization-vft5-p5i2wxmr5.vercel.app",
         "http://localhost:5173",
     ],
     allow_credentials=True,
