@@ -6,7 +6,8 @@ const API_KEY = import.meta.env.VITE_OPENWEATHER_KEY;
  */
 export const getWeatherByCity = async (city) => {
   try {
-    if (!city) return { Temp: 25, Humidity: 60, Rainfall: 500 }; // fallback defaults
+    // Fallback defaults if city is not provided
+    if (!city) return { Temp: 25, Humidity: 60, Rainfall: 500 };
 
     if (!API_KEY) {
       console.warn("OpenWeather API key not found. Using fallback data.");

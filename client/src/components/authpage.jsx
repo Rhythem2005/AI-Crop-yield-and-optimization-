@@ -36,7 +36,12 @@ export default function AuthPage() {
     }
 
     try {
-      const url = isLogin ? "http://127.0.0.1:8000/login" : "http://127.0.0.1:8000/signup";
+      const BASE_URL = import.meta.env.VITE_API_URL;
+
+      const url = isLogin 
+        ? `${BASE_URL}/login`
+        : `${BASE_URL}/signup`;
+
       const body = isLogin
         ? { email: formData.email, password: formData.password }
         : { username: formData.name, email: formData.email, password: formData.password };
@@ -60,19 +65,16 @@ export default function AuthPage() {
         const userData = {
           email: formData.email,
           name: data.user?.name || data.user?.username || formData.email.split('@')[0],
-          // Add any other user data returned from your API
         };
         
         login(data.access_token, userData);
         setMessage(t("auth.loginSuccess"));
         
-        // Navigate to the appropriate dashboard or home
         setTimeout(() => {
           navigate("/");
         }, 1000);
       } else {
         setMessage(t("auth.signupSuccess"));
-        // Clear form and switch to login
         setFormData({ name: "", email: "", password: "", confirmPassword: "" });
         setIsLogin(true);
       }

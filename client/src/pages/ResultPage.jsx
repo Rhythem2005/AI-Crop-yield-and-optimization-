@@ -25,12 +25,14 @@ const ResultPage = () => {
     );
   }
 
-  const predictedYieldKg = resultData.predicted_yield_kgha || 0;
-  const totalProductionKg = (resultData.total_production_tonnes || 0) * 1000;
+  // Safe number handling
+  const predictedYieldKg = Number(resultData?.predicted_yield_kgha || 0);
+  const totalProductionKg = Number(resultData?.total_production_tonnes || 0) * 1000;
+  const weather = resultData?.weather || {};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-100 via-white to-blue-100 p-6 md:p-10">
-      <div className="max-w-4xl mx-auto bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl p-8 space-y-8">
+      <div className="max-w-5xl mx-auto bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl p-8 space-y-8">
 
         {/* Header */}
         <div className="text-center border-b pb-6">
@@ -40,74 +42,109 @@ const ResultPage = () => {
           <p className="text-gray-600 mt-2">{t("resultPage.subtitle")}</p>
         </div>
 
-        {/* Crop & Location Details */}
+        {/* Crop & Location */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="p-5 bg-green-50 rounded-xl shadow-sm">
-            <h2 className="text-lg font-semibold text-green-800">{t("resultPage.cropChosen")}</h2>
-            <p className="text-gray-700 mt-1">{t(`crops.${resultData.crop_name}`) || resultData.crop_name || "N/A"}</p>
-          </div>
-
-          <div className="p-5 bg-blue-50 rounded-xl shadow-sm">
-            <h2 className="text-lg font-semibold text-blue-800">📍 {t("state")}</h2>
-            <p className="text-gray-700 mt-1">{resultData.location || t("notProvided")}</p>
-          </div>
+          <InfoCard
+            title={t("resultPage.cropChosen")}
+            value={t(`crops.${resultData?.crop_name}`) || resultData?.crop_name || "N/A"}
+            color="bg-green-50"
+            text="text-green-800"
+          />
+          <InfoCard
+            title={`📍 ${t("state")}`}
+            value={resultData?.location || t("notProvided")}
+            color="bg-blue-50"
+            text="text-blue-800"
+          />
         </div>
 
-        {/* Weather Details */}
-        {resultData.weather && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-5 bg-indigo-50 rounded-xl shadow-sm">
-              <h2 className="text-lg font-semibold text-indigo-800">🌡️ {t("temperature")}</h2>
-              <p className="text-gray-700 mt-1">{resultData.weather.temperature} °C</p>
-            </div>
-
-            <div className="p-5 bg-purple-50 rounded-xl shadow-sm">
-              <h2 className="text-lg font-semibold text-purple-800">💧 {t("humidity")}</h2>
-              <p className="text-gray-700 mt-1">{resultData.weather.humidity} %</p>
-            </div>
-
-            <div className="p-5 bg-pink-50 rounded-xl shadow-sm">
-              <h2 className="text-lg font-semibold text-pink-800">☀️ {t("conditions")}</h2>
-              <p className="text-gray-700 mt-1">{resultData.weather.description}</p>
+        {/* Weather Section */}
+        {Object.keys(weather).length > 0 && (
+          <div className="p-6 bg-sky-50 rounded-xl shadow-sm">
+            <h2 className="text-xl font-semibold text-sky-800 mb-4">
+              🌤️ {t("resultPage.weatherConditions")}
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <WeatherCard label={t("temperature")} value={`${weather.temperature ?? "N/A"} °C`} />
+              <WeatherCard label={t("humidity")} value={`${weather.humidity ?? "N/A"} %`} />
+              <WeatherCard label={t("conditions")} value={weather.description || "N/A"} />
             </div>
           </div>
         )}
 
-        {/* Sowing, Area, Yield & Production */}
+        {/* Farm & Yield */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="p-5 bg-yellow-50 rounded-xl shadow-sm">
-            <h2 className="text-lg font-semibold text-yellow-800">{t("resultPage.sowingDate")}</h2>
-            <p className="text-gray-700 mt-1">{resultData.sowing_date || t("notProvided")}</p>
-          </div>
-
-          <div className="p-5 bg-teal-50 rounded-xl shadow-sm">
-            <h2 className="text-lg font-semibold text-teal-800">📐 Farm Area</h2>
-            <p className="text-gray-700 mt-1">{(resultData.area || 0)} hectares</p>
-          </div>
-
-          <div className="p-5 bg-orange-50 rounded-xl shadow-sm">
-            <h2 className="text-lg font-semibold text-orange-800">{t("resultPage.predictedYield")}</h2>
-            <p className="text-gray-700 mt-1">{predictedYieldKg.toFixed(2)} kg/ha</p>
-          </div>
-
-          <div className="p-5 bg-red-50 rounded-xl shadow-sm">
-            <h2 className="text-lg font-semibold text-red-800">{t("resultPage.totalProduction")}</h2>
-            <p className="text-gray-700 mt-1">{(totalProductionKg / 1000).toFixed(2)} tonnes</p>
-          </div>
+          <InfoCard
+            title={t("resultPage.sowingDate")}
+            value={resultData?.sowing_date || t("notProvided")}
+            color="bg-yellow-50"
+            text="text-yellow-800"
+          />
+          <InfoCard
+            title="📐 Farm Area"
+            value={`${Number(resultData?.area || 0)} hectares`}
+            color="bg-teal-50"
+            text="text-teal-800"
+          />
+          <InfoCard
+            title={t("resultPage.predictedYield")}
+            value={`${predictedYieldKg.toFixed(2)} kg/ha`}
+            color="bg-orange-50"
+            text="text-orange-800"
+          />
+          <InfoCard
+            title={t("resultPage.totalProduction")}
+            value={`${(totalProductionKg / 1000).toFixed(2)} tonnes`}
+            color="bg-red-50"
+            text="text-red-800"
+          />
         </div>
 
-        {/* Recommendations */}
-        {resultData.recommendations && (
-          <div className="p-6 bg-gray-50 rounded-xl shadow-sm">
-            <h2 className="text-lg font-semibold text-gray-800 mb-2">{t("resultPage.recommendations")}</h2>
-            <ul className="list-disc ml-6 space-y-1 text-gray-700">
+        {/* Recommendations - Redesigned */}
+        {resultData?.recommendations && resultData.recommendations.length > 0 && (
+          <div className="p-6 bg-gradient-to-r from-green-50 to-emerald-100 rounded-xl shadow-sm">
+            <h2 className="text-xl font-semibold text-green-800 mb-4 flex items-center gap-2">
+              🌱 {t("resultPage.recommendations")}
+            </h2>
+            <div className="space-y-4">
               {resultData.recommendations.map((rec, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-start gap-3 p-4 bg-white rounded-xl border border-green-100 shadow-sm hover:shadow-md transition"
+                >
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-green-100 text-green-700 flex items-center justify-center font-bold">
+                    {idx + 1}
+                  </div>
+                  <p className="text-gray-700 leading-relaxed">{rec}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Pest Risk */}
+        {resultData?.pest_risk && (
+          <div className="p-6 bg-red-100 rounded-xl shadow-sm">
+            <h2 className="text-lg font-semibold text-red-700 mb-2">{t("resultPage.pestRisk")}</h2>
+            <p className="text-gray-800">{resultData.pest_risk}</p>
+          </div>
+        )}
+
+        {/* Fertilizer Recommendations */}
+        {resultData?.fertilizer_recommendations && (
+          <div className="p-6 bg-green-100 rounded-xl shadow-sm">
+            <h2 className="text-lg font-semibold text-green-700 mb-2">{t("resultPage.fertilizerRecommendations")}</h2>
+            <ul className="list-disc ml-6 space-y-1 text-gray-800">
+              {resultData.fertilizer_recommendations.map((rec, idx) => (
                 <li key={idx}>{rec}</li>
               ))}
             </ul>
           </div>
         )}
+
+        {/* Economic Analysis */}
         <EconomicAnalysis resultData={resultData} />
+
         {/* Report Generator */}
         <ReportGenerator resultData={resultData} />
 
@@ -124,5 +161,20 @@ const ResultPage = () => {
     </div>
   );
 };
+
+/* 🔹 Reusable small components */
+const InfoCard = ({ title, value, color, text }) => (
+  <div className={`p-5 ${color} rounded-xl shadow-sm`}>
+    <h2 className={`text-lg font-semibold ${text}`}>{title}</h2>
+    <p className="text-gray-700 mt-1">{value}</p>
+  </div>
+);
+
+const WeatherCard = ({ label, value }) => (
+  <div className="p-5 bg-white rounded-xl shadow-sm border border-gray-200">
+    <h2 className="text-md font-semibold text-gray-800">{label}</h2>
+    <p className="text-gray-700 mt-1">{value}</p>
+  </div>
+);
 
 export default ResultPage;
