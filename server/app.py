@@ -10,6 +10,24 @@ import xgboost as xgb
 import cv2
 import tempfile
 import warnings
+import httpx
+import os
+import random
+from fastapi.middleware.cors import CORSMiddleware
+
+app = FastAPI(title="Crop Prediction & Image Analysis API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://ai-crop-yield-and-optimization-vft5.vercel.app",  # Your frontend URL
+        "http://localhost:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 # Local imports (keep these files as they are in your project)
 from database import users_collection
@@ -18,18 +36,11 @@ import schemas
 
 warnings.filterwarnings("ignore")
 
-app = FastAPI(title="Crop Prediction & Image Analysis API")
 
 # ==============================
 # CORS Middleware
 # ==============================
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+
 
 # ==============================
 # Load ML Model
@@ -45,9 +56,8 @@ except FileNotFoundError:
 # OAuth2 scheme
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
-
 # ==============================
-# AUTH ROUTES
+# Auth Routes
 # ==============================
 @app.post("/signup")
 async def signup(user: schemas.SignupModel):
@@ -87,6 +97,44 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         raise HTTPException(status_code=401, detail="User not found")
     return user
 
+# ==============================
+# Weather Integration
+# ==============================
+STATE_TO_CITY = {
+    "Uttar Pradesh": "Lucknow",
+    "Maharashtra": "Mumbai",
+    "Punjab": "Chandigarh",
+    "Karnataka": "Bengaluru",
+    "Tamil Nadu": "Chennai",
+    "Delhi": "Delhi",
+    # Add more states if needed
+}
+
+OPENWEATHER_KEY = os.getenv("OPENWEATHER_KEY")
+
+async def fetch_weather(state: str):
+    city = STATE_TO_CITY.get(state, state)
+    if not OPENWEATHER_KEY:
+        return {"Temp": 25, "Humidity": 60, "Rainfall": 500}  # fallback
+
+    url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={OPENWEATHER_KEY}&units=metric"
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(url, timeout=10)
+            data = resp.json()
+
+        if data.get("cod") != 200:
+            return {"Temp": 25, "Humidity": 60, "Rainfall": 500}
+
+        temp = data["main"]["temp"]
+        humidity = data["main"]["humidity"]
+        rainfall = data.get("rain", {}).get("1h") or data.get("rain", {}).get("3h") or 0
+
+        return {"Temp": temp, "Humidity": humidity, "Rainfall": rainfall}
+
+    except Exception as e:
+        print("Weather fetch failed:", e)
+        return {"Temp": 25, "Humidity": 60, "Rainfall": 500}
 
 # ==============================
 # Yield Prediction
@@ -100,21 +148,23 @@ class YieldInput(BaseModel):
     K: float
     pH: float
     soil_type: str
-    Rainfall: float
-    Temp: float
-    Humidity: float
     Fertilizer_Type: str
     Fertilizer_Amount: float
     Pesticide_Amount: float
     sowing_date: str
     area: float
 
-
 @app.post("/predict_yield")
 async def predict_yield_api(data: YieldInput):
     input_data = data.dict()
 
     try:
+        # Fetch live weather
+        weather_data = await fetch_weather(input_data["State"])
+        Temp = weather_data["Temp"]
+        Humidity = weather_data["Humidity"]
+        Rainfall = weather_data["Rainfall"]
+
         df_input = pd.DataFrame([input_data])
 
         categorical_cols = ['Crop', 'State', 'soil_type', 'Fertilizer_Type']
@@ -132,86 +182,214 @@ async def predict_yield_api(data: YieldInput):
 
         recommendations = []
 
-        # Nitrogen
+        # ==============================
+        # Nutrient Recommendations
+        # ==============================
         if input_data["N"] < 30:
-            recommendations.append("🌱 Nitrogen very low: Apply 25–30 kg/ha urea immediately.")
+            msgs = [
+                "🌱 Nitrogen very low: Apply 25–30 kg/ha urea immediately.",
+                "🌱 Severe nitrogen deficiency detected — add 25–30 kg/ha urea soon.",
+                "🌱 Nitrogen levels are critically low, urgent urea application recommended."
+            ]
+            recommendations.append(random.choice(msgs))
         elif input_data["N"] < 50:
-            recommendations.append("🌱 Nitrogen low: Apply nitrogen-rich fertilizer like urea.")
+            msgs = [
+                "🌱 Nitrogen low: Apply nitrogen-rich fertilizer like urea.",
+                "🌱 Mild nitrogen shortage. Consider using urea or ammonium sulfate.",
+                "🌱 Nitrogen is slightly low — boost with nitrogen fertilizer."
+            ]
+            recommendations.append(random.choice(msgs))
         else:
-            recommendations.append("🌱 Nitrogen levels are sufficient.")
+            msgs = [
+                "🌱 Nitrogen levels are sufficient.",
+                "🌱 Adequate nitrogen detected, no immediate action needed.",
+                "🌱 Nitrogen supply is optimal — maintain current fertilization."
+            ]
+            recommendations.append(random.choice(msgs))
 
-        # Phosphorus
         if input_data["P"] < 15:
-            recommendations.append("🌿 Phosphorus very low: Apply 30–40 kg/ha DAP.")
+            msgs = [
+                "🌿 Phosphorus very low: Apply 30–40 kg/ha DAP.",
+                "🌿 Severe phosphorus deficiency — provide DAP urgently.",
+                "🌿 Very low phosphorus detected. Apply 30–40 kg/ha phosphate fertilizer."
+            ]
+            recommendations.append(random.choice(msgs))
         elif input_data["P"] < 25:
-            recommendations.append("🌿 Phosphorus low: Consider additional phosphorus fertilizer.")
+            msgs = [
+                "🌿 Phosphorus low: Consider additional phosphorus fertilizer.",
+                "🌿 Mild phosphorus shortage observed. Top-up with phosphate fertilizer.",
+                "🌿 Phosphorus slightly low — apply more DAP for balance."
+            ]
+            recommendations.append(random.choice(msgs))
         else:
-            recommendations.append("🌿 Phosphorus levels are sufficient.")
+            msgs = [
+                "🌿 Phosphorus levels are sufficient.",
+                "🌿 Adequate phosphorus detected, no action needed.",
+                "🌿 Phosphorus levels are balanced — maintain current fertilization."
+            ]
+            recommendations.append(random.choice(msgs))
 
-        # Potassium
         if input_data["K"] < 20:
-            recommendations.append("🪴 Potassium very low: Apply 30–40 kg/ha MOP.")
+            msgs = [
+                "🪴 Potassium very low: Apply 30–40 kg/ha MOP.",
+                "🪴 Severe potassium deficiency detected, add muriate of potash.",
+                "🪴 Very low potassium levels, apply MOP urgently."
+            ]
+            recommendations.append(random.choice(msgs))
         elif input_data["K"] < 35:
-            recommendations.append("🪴 Potassium low: Consider additional potassium fertilizer.")
+            msgs = [
+                "🪴 Potassium low: Consider additional potassium fertilizer.",
+                "🪴 Mild potassium shortage — add muriate of potash (MOP).",
+                "🪴 Potassium is slightly low, top-up recommended."
+            ]
+            recommendations.append(random.choice(msgs))
         else:
-            recommendations.append("🪴 Potassium levels are sufficient.")
+            msgs = [
+                "🪴 Potassium levels are sufficient.",
+                "🪴 Adequate potassium detected.",
+                "🪴 Potassium status is optimal — no adjustments required."
+            ]
+            recommendations.append(random.choice(msgs))
 
-        # Soil pH
+        # pH
         if input_data["pH"] < 6.0:
-            recommendations.append("🧪 Soil is acidic. Apply lime to raise pH and improve nutrient uptake.")
+            msgs = [
+                "🧪 Soil is acidic. Apply lime to raise pH and improve nutrient uptake.",
+                "🧪 The soil shows acidity — consider liming to balance pH.",
+                "🧪 Acidic soil detected. Add lime to improve nutrient absorption."
+            ]
+            recommendations.append(random.choice(msgs))
         elif input_data["pH"] > 7.5:
-            recommendations.append("🧪 Soil is alkaline. Add organic matter or gypsum to improve pH.")
+            msgs = [
+                "🧪 Soil is alkaline. Add organic matter or gypsum to improve pH.",
+                "🧪 High alkalinity detected — gypsum application recommended.",
+                "🧪 Alkaline soil present. Use organic matter to rebalance pH."
+            ]
+            recommendations.append(random.choice(msgs))
         else:
-            recommendations.append("🧪 Soil pH is optimal.")
+            msgs = [
+                "🧪 Soil pH is optimal.",
+                "🧪 Balanced soil pH detected.",
+                "🧪 Soil pH is within the healthy range."
+            ]
+            recommendations.append(random.choice(msgs))
 
-        # Rainfall
-        if input_data["Rainfall"] < 200:
-            recommendations.append("💧 Low rainfall detected. Irrigation is necessary.")
-        elif input_data["Rainfall"] > 800:
-            recommendations.append("💧 High rainfall. Ensure proper drainage to avoid waterlogging.")
+        # Weather-based recommendations
+        if Rainfall < 200:
+            msgs = [
+                "💧 Low rainfall detected. Irrigation is necessary.",
+                "💧 Very little rainfall — ensure supplementary irrigation.",
+                "💧 Insufficient rainfall, arrange irrigation support."
+            ]
+            recommendations.append(random.choice(msgs))
+        elif Rainfall > 800:
+            msgs = [
+                "💧 High rainfall. Ensure proper drainage to avoid waterlogging.",
+                "💧 Excess rainfall observed — maintain good field drainage.",
+                "💧 Heavy rainfall detected, check for waterlogging issues."
+            ]
+            recommendations.append(random.choice(msgs))
         else:
-            recommendations.append("💧 Rainfall is adequate.")
+            msgs = [
+                "💧 Rainfall is adequate.",
+                "💧 Rainfall levels are optimal for crop growth.",
+                "💧 Adequate rainfall — irrigation adjustments not needed."
+            ]
+            recommendations.append(random.choice(msgs))
 
-        # Temperature
-        if input_data["Temp"] > 35:
-            recommendations.append("☀️ High temperature: Use mulching/shading or plant heat-tolerant varieties.")
-        elif input_data["Temp"] < 15:
-            recommendations.append("❄️ Low temperature: Protect crops from frost if applicable.")
+        if Temp > 35:
+            msgs = [
+                "☀️ High temperature: Use mulching/shading or plant heat-tolerant varieties.",
+                "☀️ Extreme heat detected — provide shade or mulch for crops.",
+                "☀️ High temperatures can stress crops, consider heat-tolerant seeds."
+            ]
+            recommendations.append(random.choice(msgs))
+        elif Temp < 15:
+            msgs = [
+                "❄️ Low temperature: Protect crops from frost if applicable.",
+                "❄️ Very cold conditions detected — cover young plants if possible.",
+                "❄️ Low temperatures may harm crops — take protective measures."
+            ]
+            recommendations.append(random.choice(msgs))
         else:
-            recommendations.append("🌡️ Temperature is within optimal range.")
+            msgs = [
+                "🌡️ Temperature is within optimal range.",
+                "🌡️ Temperature levels are suitable for growth.",
+                "🌡️ Current temperature is favorable for crops."
+            ]
+            recommendations.append(random.choice(msgs))
 
-        # Humidity
-        if input_data["Humidity"] > 80:
-            recommendations.append("💦 High humidity: Monitor for fungal diseases and apply fungicides proactively.")
-        elif input_data["Humidity"] < 50:
-            recommendations.append("💦 Low humidity: Use drip irrigation or maintain soil moisture.")
+        if Humidity > 80:
+            msgs = [
+                "💦 High humidity: Monitor for fungal diseases and apply fungicides proactively.",
+                "💦 Excess humidity may trigger fungal infections — take preventive steps.",
+                "💦 Very humid conditions detected, keep watch for fungal outbreaks."
+            ]
+            recommendations.append(random.choice(msgs))
+        elif Humidity < 50:
+            msgs = [
+                "💦 Low humidity: Use drip irrigation or maintain soil moisture.",
+                "💦 Dry air detected — ensure consistent soil watering.",
+                "💦 Low humidity may dry crops, maintain irrigation."
+            ]
+            recommendations.append(random.choice(msgs))
         else:
-            recommendations.append("💦 Humidity is within ideal range.")
+            msgs = [
+                "💦 Humidity is within ideal range.",
+                "💦 Balanced humidity observed.",
+                "💦 Humidity levels are favorable for crops."
+            ]
+            recommendations.append(random.choice(msgs))
 
         # Fertilizer & Pesticide
         if input_data["Fertilizer_Amount"] < 50:
-            recommendations.append(f"🌾 Fertilizer amount is low. Consider increasing {input_data['Fertilizer_Type']} fertilizer for optimal growth.")
+            msgs = [
+                f"🌾 Fertilizer amount is low. Consider increasing {input_data['Fertilizer_Type']} fertilizer for optimal growth.",
+                f"🌾 Low fertilizer detected — add more {input_data['Fertilizer_Type']} for better yield.",
+                f"🌾 Insufficient fertilizer applied. Increase {input_data['Fertilizer_Type']} usage."
+            ]
+            recommendations.append(random.choice(msgs))
         if input_data["Pesticide_Amount"] < 5:
-            recommendations.append("🐛 Pesticide amount is low. Regular pest monitoring is recommended.")
+            msgs = [
+                "🐛 Pesticide amount is low. Regular pest monitoring is recommended.",
+                "🐛 Low pesticide use detected — ensure proper pest surveillance.",
+                "🐛 Insufficient pesticide applied. Monitor crops closely."
+            ]
+            recommendations.append(random.choice(msgs))
 
-        # Overall crop health status
+        # Crop health status
         if predicted_yield > 80:
             crop_status = "Excellent"
-            recommendations.append("📊 Overall crop health is excellent. Maintain current practices.")
+            msgs = [
+                "📊 Overall crop health is excellent. Maintain current practices.",
+                "📊 Crops look excellent — continue with existing care.",
+                "📊 Excellent yield potential — sustain present management."
+            ]
+            recommendations.append(random.choice(msgs))
         elif predicted_yield > 50:
             crop_status = "Moderate"
-            recommendations.append("📊 Overall crop health is moderate. Follow above recommendations for better yield.")
+            msgs = [
+                "📊 Overall crop health is moderate. Follow above recommendations for better yield.",
+                "📊 Crop condition is moderate — improvements possible with adjustments.",
+                "📊 Yield outlook is moderate. Apply suggested measures for improvement."
+            ]
+            recommendations.append(random.choice(msgs))
         else:
             crop_status = "Poor"
-            recommendations.append("📊 Overall crop health is poor. Immediate action required: optimize nutrients, irrigation, and pest control.")
+            msgs = [
+                "📊 Overall crop health is poor. Immediate action required: optimize nutrients, irrigation, and pest control.",
+                "📊 Crop condition is poor — urgent corrective action needed.",
+                "📊 Very low crop health detected. Adjust fertilization, water, and pest management immediately."
+            ]
+            recommendations.append(random.choice(msgs))
 
         result = {
             "crop_name": input_data["Crop"],
             "location": input_data["State"],
             "area": input_data["area"],
             "weather": {
-                "temperature": input_data["Temp"],
-                "humidity": input_data["Humidity"],
+                "temperature": Temp,
+                "humidity": Humidity,
                 "description": "Data from API"},
             "predicted_yield_kgha": predicted_yield,
             "total_production_tonnes": total_production_tonnes,
@@ -225,8 +403,14 @@ async def predict_yield_api(data: YieldInput):
         return JSONResponse(content={"error": str(e)}, status_code=400)
 
 
+
 # ==============================
 # Image Analysis
+# ==============================
+import random
+
+# ==============================
+# Image Analysis (Multiple Statements)
 # ==============================
 def analyze_crop_health_detailed(image_path, crop_type="Wheat"):
     img = cv2.imread(image_path)
@@ -248,18 +432,25 @@ def analyze_crop_health_detailed(image_path, crop_type="Wheat"):
     brown_mask = cv2.inRange(hsv, (10, 50, 20), (20, 255, 100))
     brown_count = np.sum(brown_mask > 0)
 
+    gray_mask = cv2.inRange(hsv, (0, 0, 40), (180, 50, 180))
+    gray_count = np.sum(gray_mask > 0)
+
+    # Ratios
     green_ratio = green_count / total_pixels
     yellow_ratio = yellow_count / total_pixels
     brown_ratio = brown_count / total_pixels
+    gray_ratio = gray_count / total_pixels
 
-    health_score = green_ratio * 100
+    health_score = green_ratio * 100  
+
     analysis = {
         "crop_type": crop_type,
         "health_score_percent": round(health_score, 2),
         "leaf_conditions": {
             "healthy_green_percent": round(green_ratio * 100, 2),
             "yellow_leaves_percent": round(yellow_ratio * 100, 2),
-            "brown_spots_percent": round(brown_ratio * 100, 2)
+            "brown_spots_percent": round(brown_ratio * 100, 2),
+            "dry_gray_percent": round(gray_ratio * 100, 2)
         },
         "diagnosis": [],
         "recommendations": []
@@ -267,142 +458,81 @@ def analyze_crop_health_detailed(image_path, crop_type="Wheat"):
 
     # --- Nitrogen deficiency (yellow) ---
     if yellow_ratio > 0.05:
-        analysis["diagnosis"] += [
+        nitrogen_diag = [
             "Nitrogen deficiency detected (yellow leaves).",
-            "Yellowing is reducing chlorophyll production.",
-            "Lower leaves are more affected, indicating mobile nutrient deficiency.",
-            "Crop growth rate may be slowing due to poor photosynthesis.",
-            "Yield potential could be reduced if not corrected."
+            "Leaves show yellowing, likely from low nitrogen.",
+            "Crop may be suffering from nitrogen stress.",
+            "Yellowing leaves suggest nitrogen shortage.",
+            "Signs of poor nitrogen nutrition are visible."
         ]
-        analysis["recommendations"] += [
+        nitrogen_reco = [
             "Apply nitrogen-rich fertilizer immediately (e.g., urea).",
-            "Consider foliar spray with urea for quick absorption.",
-            "Incorporate organic manure for long-term nitrogen supply.",
-            "Avoid overwatering, as it leaches nitrogen from soil.",
-            "Monitor crop weekly for improvement in leaf greenness."
+            "Use ammonium nitrate or urea to restore nitrogen levels.",
+            "Boost nitrogen with compost or organic fertilizer.",
+            "Add nitrogenous fertilizer to improve leaf greenness.",
+            "Supply additional nitrogen to avoid stunted growth."
         ]
+        analysis["diagnosis"] += random.sample(nitrogen_diag, k=3)
+        analysis["recommendations"] += random.sample(nitrogen_reco, k=3)
 
     # --- Disease / pest (brown) ---
     if brown_ratio > 0.02:
-        analysis["diagnosis"] += [
-            "Possible disease or pest attack (brown/black spots).",
-            "Spots may indicate fungal infections like leaf blight.",
-            "Irregular lesions suggest pest chewing damage.",
-            "Photosynthesis efficiency is likely reduced.",
-            "Risk of spread across the crop if untreated."
+        disease_diag = [
+            "Possible disease or pest attack (brown spots).",
+            "Brown lesions may indicate fungal infection.",
+            "Pest or disease stress detected on leaves.",
+            "Spotted leaves suggest pathogen activity.",
+            "Crop may be affected by pests or early blight."
         ]
-        analysis["recommendations"] += [
-            "Inspect leaves with magnifying lens for pests/fungal spores.",
-            "Apply recommended fungicide/pesticide for the crop type.",
-            "Remove and burn heavily affected leaves to prevent spread.",
-            "Ensure proper field ventilation to reduce humidity.",
-            "Rotate crops next season to break pest/disease cycle."
+        disease_reco = [
+            "Apply suitable fungicide/pesticide for this crop.",
+            "Spray approved fungicides and monitor regularly.",
+            "Seek agri-expert advice for targeted pest control.",
+            "Follow integrated pest management practices.",
+            "Rotate crops to reduce pest and disease pressure."
         ]
+        analysis["diagnosis"] += random.sample(disease_diag, k=3)
+        analysis["recommendations"] += random.sample(disease_reco, k=3)
+
+    # --- Dry/gray patches ---
+    if gray_ratio > 0.05:
+        gray_diag = [
+            "Signs of drought stress observed.",
+            "Gray patches may indicate dry leaves.",
+            "Possible water shortage symptoms on crop.",
+            "Leaves appear dehydrated or moisture-stressed.",
+            "Soil moisture stress signs detected in foliage."
+        ]
+        gray_reco = [
+            "Increase irrigation and check soil moisture.",
+            "Apply mulching to retain soil water.",
+            "Follow a regular watering schedule.",
+            "Ensure irrigation matches crop growth stage.",
+            "Improve soil moisture retention with organic matter."
+        ]
+        analysis["diagnosis"] += random.sample(gray_diag, k=3)
+        analysis["recommendations"] += random.sample(gray_reco, k=3)
 
     # --- Healthy crop ---
-    if green_ratio > 0.8 and yellow_ratio < 0.05 and brown_ratio < 0.02:
-        analysis["diagnosis"] += [
-            "Crop appears healthy.",
-            "Leaves show strong green color, indicating good chlorophyll.",
-            "Nutrient balance appears sufficient.",
-            "Minimal pest/disease symptoms detected.",
-            "Overall growth condition is optimal."
+    if green_ratio > 0.8 and yellow_ratio < 0.05 and brown_ratio < 0.02 and gray_ratio < 0.05:
+        healthy_diag = [
+            "Crop looks healthy and vigorous.",
+            "Foliage is lush and green.",
+            "Plant canopy appears stress-free.",
+            "Crop is in excellent health condition.",
+            "Overall crop health is good with no major stress."
         ]
-        analysis["recommendations"] += [
+        healthy_reco = [
             "Maintain regular irrigation schedule.",
-            "Continue applying balanced NPK fertilizer.",
-            "Ensure proper weed management to avoid competition.",
-            "Keep monitoring for early signs of stress.",
-            "Plan preventive fungicide spray if season is humid."
+            "Continue current crop management practices.",
+            "No major action needed, keep monitoring.",
+            "Sustain present practices for stable growth.",
+            "Keep observing for early signs of stress."
         ]
-
-    # --- Severe fungal damage ---
-    if green_ratio < 0.7 and brown_ratio > 0.1:
-        analysis["diagnosis"] += [
-            "Severe leaf damage due to fungal infection or pests.",
-            "Large areas of necrosis visible.",
-            "Green cover significantly reduced.",
-            "Crop canopy may not intercept sunlight effectively.",
-            "High yield loss risk if untreated."
-        ]
-        analysis["recommendations"] += [
-            "Apply systemic fungicide immediately.",
-            "Improve drainage to reduce fungal growth.",
-            "Avoid excessive irrigation.",
-            "Spray neem oil or biocontrol agents as eco-friendly option.",
-            "Consult local agri expert for targeted treatment."
-        ]
-
-    # --- Nutrient deficiency (yellow + low green) ---
-    if yellow_ratio > 0.1 and green_ratio < 0.6:
-        analysis["diagnosis"] += [
-            "Significant nutrient deficiency detected.",
-            "Likely nitrogen + potassium imbalance.",
-            "Chlorosis spreading across canopy.",
-            "Photosynthesis and energy transfer hampered.",
-            "Risk of stunted growth and low yield."
-        ]
-        analysis["recommendations"] += [
-            "Apply balanced NPK fertilizer blend.",
-            "Use foliar sprays with micronutrients.",
-            "Add compost or manure to improve soil fertility.",
-            "Check pH of soil to ensure nutrient availability.",
-            "Repeat treatment within 10–14 days if symptoms persist."
-        ]
-
-    # --- Water stress (yellow + green) ---
-    if yellow_ratio > 0.08 and brown_ratio < 0.02 and green_ratio > 0.6:
-        analysis["diagnosis"] += [
-            "Possible water stress or early drought symptoms.",
-            "Yellowing edges while center remains green.",
-            "Crop under mild stress conditions.",
-            "Soil moisture may be insufficient.",
-            "Stress can progress quickly if untreated."
-        ]
-        analysis["recommendations"] += [
-            "Increase irrigation frequency slightly.",
-            "Check soil moisture before watering.",
-            "Use mulch to conserve soil water.",
-            "Avoid waterlogging while irrigating.",
-            "Plan irrigation around cooler hours of day."
-        ]
-
-    # --- Combined fungal + nutrient stress ---
-    if yellow_ratio > 0.07 and brown_ratio > 0.07:
-        analysis["diagnosis"] += [
-            "Combined nutrient stress and fungal infection risk.",
-            "Yellowing + brown spots suggest multiple stress factors.",
-            "Nutrient uptake may be blocked by disease.",
-            "Leaves losing photosynthetic area rapidly.",
-            "Crop weakening under combined pressure."
-        ]
-        analysis["recommendations"] += [
-            "Apply balanced fertilizer along with fungicide.",
-            "Remove infected plant parts promptly.",
-            "Improve irrigation drainage.",
-            "Use resistant crop variety in next cycle.",
-            "Strengthen crop with organic growth boosters."
-        ]
-
-    # --- Very poor health ---
-    if green_ratio < 0.5:
-        analysis["diagnosis"] += [
-            "Overall crop health is very poor.",
-            "Less than half of canopy is healthy.",
-            "Severe stress detected across the field.",
-            "High chance of crop failure if untreated.",
-            "Emergency intervention required."
-        ]
-        analysis["recommendations"] += [
-            "Conduct urgent soil and water quality tests.",
-            "Reapply broad-spectrum fertilizer.",
-            "Apply fungicide if fungal spread visible.",
-            "Ensure proper pest monitoring immediately.",
-            "Consult agronomist for last-stage recovery plan."
-        ]
+        analysis["diagnosis"] += random.sample(healthy_diag, k=3)
+        analysis["recommendations"] += random.sample(healthy_reco, k=3)
 
     return analysis
-
 
 
 @app.post("/analyze_crop_image")
